@@ -11,6 +11,10 @@ import CoreBluetooth
 struct ContentView: View {
     @ObservedObject private var bluetoothScanner = BluetoothScanner()
     @State private var searchText = ""
+    
+    init() {
+        UINavigationBar.appearance().largeTitleTextAttributes = [.font : UIFont(name: "Helvetica-Bold", size: 25)!]
+    }
 
     var body: some View {
         NavigationView {
@@ -21,17 +25,8 @@ struct ContentView: View {
                 .onAppear{UITextField.appearance().clearButtonMode = .whileEditing}
                 .textFieldStyle(RoundedBorderTextFieldStyle())
                 
-                // List of discovered peripherals filtered by search text
-                List(bluetoothScanner.discoveredPeripherals.filter {
-                    self.searchText.isEmpty ? true : $0.peripheral.name?.lowercased().contains(self.searchText.lowercased()) == true
-                }, id: \.peripheral.identifier) { discoveredPeripheral in
-                    VStack(alignment: .leading) {
-                        Text(discoveredPeripheral.peripheral.name ?? "Unknown Device")
-                        Text(discoveredPeripheral.advertisedData)
-                            .font(.caption)
-                            .foregroundColor(.gray)
-                    }
-                }
+                deviceCards
+                
                 Spacer()
                 // Button for starting or stopping scanning
                 Button(action: {
@@ -57,6 +52,26 @@ struct ContentView: View {
             .navigationViewStyle(StackNavigationViewStyle())
             .padding()
         }
+    }
+    
+    private var deviceCards: some View {
+        // List of discovered peripherals filtered by search text
+        List(bluetoothScanner.discoveredPeripherals.filter {
+            self.searchText.isEmpty ? true : $0.peripheral.name?.lowercased().contains(self.searchText.lowercased()) == true
+        }, id: \.peripheral.identifier) { discoveredPeripheral in
+            Button(action: {
+                print("Connecting to " + (discoveredPeripheral.peripheral.name ?? "Unknown Device"))
+            }) {
+                Text(discoveredPeripheral.peripheral.name ?? "Unknown Device")
+                    .frame(minWidth: 111, idealWidth: .infinity, maxWidth: .infinity, alignment: .leading)
+                Text(discoveredPeripheral.advertisedData)
+                    .font(.caption)
+                    .foregroundColor(.gray)
+            }
+            .listRowInsets(.init(top: 0, leading: 0, bottom: 0, trailing: 0))
+            .frame(minWidth: 111, idealWidth: .infinity, maxWidth: .infinity, alignment: .leading)
+        }
+        .listStyle(PlainListStyle())
     }
 }
 

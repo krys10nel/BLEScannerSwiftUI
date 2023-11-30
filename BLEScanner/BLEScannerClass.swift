@@ -57,22 +57,16 @@ class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
     func centralManagerDidUpdateState(_ central: CBCentralManager) {
         switch central.state {
         case .unknown:
-            //print("central.state is .unknown")
             stopScan()
         case .resetting:
-            //print("central.state is .resetting")
             stopScan()
         case .unsupported:
-            //print("central.state is .unsupported")
             stopScan()
         case .unauthorized:
-            //print("central.state is .unauthorized")
             stopScan()
         case .poweredOff:
-            //print("central.state is .poweredOff")
             stopScan()
         case .poweredOn:
-            //print("central.state is .poweredOn")
             startScan()
         @unknown default:
             print("central.state is unknown")
@@ -85,7 +79,8 @@ class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
         
         let serviceUUID = advertisementData["kCBAdvDataServiceUUIDs"]
         
-        let advertisedData = "Service UUIDs: \(serviceUUID ?? "None")\n"
+        let advertisedData = "ID: \(peripheral.identifier)\n" +
+                             "Service UUIDs: \(serviceUUID ?? "None")\n"
 
         // Convert the timestamp into human readable format and insert it to the advertisedData String
         /* let timestampValue = advertisementData["kCBAdvDataTimestamp"] as! Double
