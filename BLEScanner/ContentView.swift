@@ -42,13 +42,13 @@ struct ContentView: View {
                         Text("Scan for Devices")
                     }
                 }
-                // Button looks cooler this way on iOS
                 .padding()
                 .background(bluetoothScanner.isScanning ? Color.red : Color.blue)
                 .foregroundColor(Color.white)
                 .cornerRadius(5.0)
             }
             .navigationBarTitle(Text("Bluetooth Devices"))
+            .navigationBarItems(trailing: bluetoothScanner.isPowered ? Text("Bluetooth ON").foregroundColor(.green) : Text("Bluetooth OFF").foregroundColor(.red))
             .navigationViewStyle(StackNavigationViewStyle())
             .padding()
         }
@@ -57,16 +57,25 @@ struct ContentView: View {
     private var deviceCards: some View {
         // List of discovered peripherals filtered by search text
         List(bluetoothScanner.discoveredPeripherals.filter {
-            self.searchText.isEmpty ? true : $0.peripheral.name?.lowercased().contains(self.searchText.lowercased()) == true
-        }, id: \.peripheral.identifier) { discoveredPeripheral in
+            self.searchText.isEmpty ? true : $0.deviceName.lowercased().contains(self.searchText.lowercased()) == true
+        }, id: \.id) { discoveredPeripherals in
             Button(action: {
-                print("Connecting to " + (discoveredPeripheral.peripheral.name ?? "Unknown Device"))
+                bluetoothScanner.connectPeripheral(discoveredPeripherals)
+                print("Connecting to " + discoveredPeripherals.deviceName)
             }) {
-                Text(discoveredPeripheral.peripheral.name ?? "Unknown Device")
-                    .frame(minWidth: 111, idealWidth: .infinity, maxWidth: .infinity, alignment: .leading)
-                Text(discoveredPeripheral.advertisedData)
-                    .font(.caption)
-                    .foregroundColor(.gray)
+                VStack {
+                    HStack {
+                        // TODO: replace rssi numbers with images
+                        Text(String(discoveredPeripherals.rssi))
+                        Text(discoveredPeripherals.deviceName)
+                            .frame(minWidth: 111, idealWidth: .infinity, maxWidth: .infinity, alignment: .leading)
+                        Spacer()
+                    }
+                    Text("\(discoveredPeripherals.id)\n" + "Services: \(discoveredPeripherals.advertisedData["kCBAdvDataServiceUUID"] ?? "None Found")")
+                     .font(.caption)
+                     .foregroundColor(.gray)
+                }
+                .padding(.vertical)
             }
             .listRowInsets(.init(top: 0, leading: 0, bottom: 0, trailing: 0))
             .frame(minWidth: 111, idealWidth: .infinity, maxWidth: .infinity, alignment: .leading)
