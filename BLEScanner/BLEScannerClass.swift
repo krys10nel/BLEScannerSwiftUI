@@ -16,19 +16,53 @@ struct Peripheral: Identifiable {
     var deviceName: String
     var advertisedData: [String : Any]
     var rssi: Int
+    /*
+    init(_peripheral: CBPeripheral,
+        _deviceName: String,
+        _advertisedData: [String : Any],
+        _rssi: NSNumber) {
+        id = UUID()
+        peripheral = _peripheral
+        deviceName = _deviceName
+        advertisedData = _advertisedData
+        rssi = _rssi.intValue
+        }
+     */
+}
+
+struct Service: Identifiable {
+    var id: CBUUID
+    
+    var service: CBService
+}
+
+struct Characteristic: Identifiable {
+    var id: CBUUID
+    
+    var service: CBService
+    var characteristic: CBCharacteristic
+    var description: String
+    var readValue: String
 }
 
 class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
     @Published var discoveredPeripherals = [Peripheral]()
+    @Published var discoveredServices =  [Service]()
+    @Published var discoveredCharacteristics = [Characteristic]()
+    
     @Published var isScanning = false
     @Published var isConnected = false
     @Published var isPowered = false
-    var centralManager: CBCentralManager!
+    private var centralManager: CBCentralManager!
     // Set to store unique peripherals that have been discovered
     var discoveredPeripheralSet = Set<CBPeripheral>()
     var timer: Timer?
     
-    private var connectedPeripheral: Peripheral!
+    @Published var connectedPeripheral: Peripheral!
+    
+    private var readCharacteristic: CBCharacteristic?
+    private var writeCharacteristic: CBCharacteristic?
+    private var notifyCharacteristic: CBCharacteristic?
 
     override init() {
         super.init()
@@ -50,7 +84,9 @@ class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
             stopScan()
         case .poweredOn:
             isPowered = true
-            startScan()
+            if !isScanning {
+                startScan()
+            }
         @unknown default:
             print("central.state is unknown")
         }
@@ -78,6 +114,8 @@ class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
         // Checks if LocalNameKey can be type-casted to name as a String, otherwise name will be nil
         if let name = advertisementData[CBAdvertisementDataLocalNameKey] as? String {
             peripheralName = name
+        } else if let name = peripheral.name {
+            peripheralName = name
         } else {
             peripheralName = "No Name"
         }
@@ -89,6 +127,7 @@ class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
             discoveredPeripheralSet.insert(peripheral)
             objectWillChange.send()
             print(Peripheral(id: peripheral.identifier, peripheral: peripheral, deviceName: peripheralName, advertisedData: advertisementData, rssi: RSSI.intValue))
+            print("\n")
         } else {
             // If the peripheral is already in the list, update its advertised data
             if let index = discoveredPeripherals.firstIndex(where: { $0.peripheral == peripheral }) {
@@ -96,6 +135,27 @@ class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
                 objectWillChange.send()
             }
         }
+    }
+    
+    func centralManager(_ central: CBCentralManager, didConnect peripheral: CBPeripheral) {
+        guard let connectedPeripheral = connectedPeripheral else { return }
+        print("isConnected = \(isConnected)")
+        print("Connected peripheral info: \(connectedPeripheral)")
+        self.connectedPeripheral.peripheral = peripheral
+        peripheral.delegate = self
+        peripheral.discoverServices(nil)
+    }
+    
+    func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
+        print("Failed to connect to \(connectedPeripheral.deviceName)")
+    }
+    
+    func centralManager(_ central: CBCentralManager, didDisconnectPeripheral peripheral: CBPeripheral, error: Error?) {
+        if error != nil {
+            print("Disconnection error")
+            return
+        }
+        print("Successfully didDisconnectPeripheral")
     }
     
     func startScan() {
@@ -127,19 +187,72 @@ class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
         centralManager.stopScan()
     }
     
-    func connectPeripheral(_ selectPeripheral: Peripheral?) {
+    func connectPeripheral(_ selectPeripheral: Peripheral!) {
         guard let connectPeripheral = selectPeripheral else { return }
         connectedPeripheral = selectPeripheral
         centralManager.connect(connectPeripheral.peripheral, options: nil)
+        print("Connecting to " + (connectedPeripheral.deviceName))
+        isConnected = true
     }
     
     func disconnectPeripheral() {
         guard let connectedPeripheral = connectedPeripheral else { return }
+        print("Disconnecting from device")
         centralManager.cancelPeripheralConnection(connectedPeripheral.peripheral)
+        isConnected = false
+        print("isConnected : \(isConnected)")
     }
     
     func navigateToDetailView(isDetailViewLinkActive: Binding<Bool>) -> some View {
-        let navigateToDetailView = NavigationLink("", destination: DetailsView(), isActive: isDetailViewLinkActive)
+        let navigateToDetailView = NavigationLink("", destination: DetailsView().environmentObject(BluetoothScanner()), isActive: isDetailViewLinkActive)
         return navigateToDetailView
     }
+}
+
+extension BluetoothScanner: CBPeripheralDelegate {
+    func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
+        guard let services = peripheral.services else { return }
+        for service in services {
+            discoveredServices.append(Service(id: service.uuid, service: service))
+            peripheral.discoverCharacteristics(nil, for: service)
+        }
+        print("didDiscoverServices")
+        print(discoveredServices)
+    }
+    
+    func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
+        guard let characteristics = service.characteristics else { return }
+        for characteristic in characteristics {
+            switch characteristic.properties {
+            case .read:
+                readCharacteristic = characteristic
+            case .write:
+                writeCharacteristic = characteristic
+            case .notify:
+                notifyCharacteristic = characteristic
+                peripheral.setNotifyValue(true, for: characteristic)
+            case .indicate: break
+            case .broadcast: break
+            default: break
+            }
+        }
+    }
+    
+    func peripheral(_ peripheral: CBPeripheral, didWriteValueFor descriptor: CBDescriptor, error: Error?) {
+        
+    }
+    
+    func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
+        
+    }
+    /*
+    func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
+        guard let value = characteristic.value else { return }
+        delegate?.value(data: value)
+    }
+    
+    func peripheral(_ peripheral: CBPeripheral, didReadRSSI RSSI: NSNumber, error: Error?) {
+        delegate?.rssi(value: Int(truncating: RSSI))
+    }
+     */
 }

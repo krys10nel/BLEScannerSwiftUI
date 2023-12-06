@@ -9,7 +9,7 @@ import SwiftUI
 import CoreBluetooth
 
 struct ContentView: View {
-    @ObservedObject private var bluetoothScanner = BluetoothScanner()
+    @ObservedObject var bluetoothScanner = BluetoothScanner()
     @State private var searchText = ""
     
     init() {
@@ -19,6 +19,7 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             VStack {
+                bluetoothScanner.navigateToDetailView(isDetailViewLinkActive: $bluetoothScanner.isConnected)
                 // Text field for entering search text
                 TextField("Search",
                           text: $searchText)
@@ -60,8 +61,7 @@ struct ContentView: View {
             self.searchText.isEmpty ? true : $0.deviceName.lowercased().contains(self.searchText.lowercased()) == true
         }, id: \.id) { discoveredPeripherals in
             Button(action: {
-                bluetoothScanner.connectPeripheral(discoveredPeripherals)
-                print("Connecting to " + discoveredPeripherals.deviceName)
+                self.bluetoothScanner.connectPeripheral(discoveredPeripherals)
             }) {
                 VStack {
                     HStack {
@@ -71,7 +71,7 @@ struct ContentView: View {
                             .frame(minWidth: 111, idealWidth: .infinity, maxWidth: .infinity, alignment: .leading)
                         Spacer()
                     }
-                    Text("\(discoveredPeripherals.id)\n" + "Services: \(discoveredPeripherals.advertisedData["kCBAdvDataServiceUUID"] ?? "None Found")")
+                    Text("\(discoveredPeripherals.id)\n" + "Services: \(discoveredPeripherals.advertisedData["kCBAdvDataServiceUUIDs"] ?? "None Found")")
                      .font(.caption)
                      .foregroundColor(.gray)
                 }
