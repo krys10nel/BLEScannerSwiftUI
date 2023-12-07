@@ -84,7 +84,7 @@ class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
             stopScan()
         case .poweredOn:
             isPowered = true
-            if !isScanning {
+            if !isScanning && !isConnected {
                 startScan()
             }
         @unknown default:
@@ -189,6 +189,8 @@ class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
     
     func connectPeripheral(_ selectPeripheral: Peripheral!) {
         guard let connectPeripheral = selectPeripheral else { return }
+        
+        
         connectedPeripheral = selectPeripheral
         centralManager.connect(connectPeripheral.peripheral, options: nil)
         print("Connecting to " + (connectedPeripheral.deviceName))
@@ -200,12 +202,8 @@ class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
         print("Disconnecting from device")
         centralManager.cancelPeripheralConnection(connectedPeripheral.peripheral)
         isConnected = false
+        discoveredServices.removeAll()
         print("isConnected : \(isConnected)")
-    }
-    
-    func navigateToDetailView(isDetailViewLinkActive: Binding<Bool>) -> some View {
-        let navigateToDetailView = NavigationLink("", destination: DetailsView().environmentObject(BluetoothScanner()), isActive: isDetailViewLinkActive)
-        return navigateToDetailView
     }
 }
 

@@ -19,7 +19,8 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             VStack {
-                bluetoothScanner.navigateToDetailView(isDetailViewLinkActive: $bluetoothScanner.isConnected)
+                NavigationLink("", destination: DetailsView().environmentObject(bluetoothScanner), isActive: $bluetoothScanner.isConnected)
+                
                 // Text field for entering search text
                 TextField("Search",
                           text: $searchText)
