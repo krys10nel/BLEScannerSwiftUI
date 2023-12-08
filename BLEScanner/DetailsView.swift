@@ -8,17 +8,30 @@
 import SwiftUI
 
 struct DetailsView: View {
-    @EnvironmentObject var device : BluetoothScanner
+    @ObservedObject var device : BluetoothScanner
     
     var body: some View {
         NavigationView{
             VStack {
                 List(device.discoveredServices, id: \.id) { discoveredServices in
-                    VStack {
-                        Text("\(discoveredServices.id)")
-                        characteristicView
+                    Button(action: {
+                        print("Clicked on \(discoveredServices)")
+                    }) {
+                        VStack {
+                            HStack {
+                                Text("\(discoveredServices.id)")
+                                    .frame(minWidth: 111, idealWidth: .infinity, maxWidth: .infinity, alignment: .leading)
+                                Spacer()
+                            }
+                            characteristicView
+                        }
+                        .padding()
                     }
+                    .listRowInsets(.init(top: 0, leading: 0, bottom: 0, trailing: 0))
+                    .frame(minWidth: 111, idealWidth: .infinity, maxWidth: .infinity, alignment: .leading)
                 }
+                .listStyle(PlainListStyle())
+                
                 Spacer()
                 Button(action: {
                     self.device.disconnectPeripheral()
@@ -56,9 +69,11 @@ struct DetailsView: View {
     private var characteristicView: some View {
         //TODO: input characteristics for services
         Text("Characteristic 1")
+            .font(.caption2)
+            .foregroundColor(.gray)
     }
 }
 
 #Preview {
-    DetailsView().environmentObject(BluetoothScanner())
+    DetailsView(device: BluetoothScanner())
 }

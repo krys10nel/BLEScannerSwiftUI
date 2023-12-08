@@ -41,6 +41,7 @@ class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
     @Published var isScanning = false
     @Published var isConnected = false
     @Published var isPowered = false
+
     private var centralManager: CBCentralManager!
     // Set to store unique peripherals that have been discovered
     var discoveredPeripheralSet = Set<CBPeripheral>()
@@ -236,9 +237,8 @@ extension BluetoothScanner: CBPeripheralDelegate {
         guard let value = characteristic.value else { return }
         delegate?.value(data: value)
     }
-    
+    */
     func peripheral(_ peripheral: CBPeripheral, didReadRSSI RSSI: NSNumber, error: Error?) {
-        delegate?.rssi(value: Int(truncating: RSSI))
+        
     }
-     */
 }

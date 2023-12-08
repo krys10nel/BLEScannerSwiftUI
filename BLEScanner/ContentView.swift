@@ -19,8 +19,18 @@ struct ContentView: View {
     var body: some View {
         NavigationView {
             VStack {
-                NavigationLink("", destination: DetailsView().environmentObject(bluetoothScanner), isActive: $bluetoothScanner.isConnected)
+                NavigationLink("", destination: DetailsView(device: bluetoothScanner), isActive: $bluetoothScanner.isConnected)
                 
+                if #available(iOS 16.0,*) {
+                    HStack {
+                        Image(systemName: "dot.radiowaves.up.forward", variableValue: 0.25)
+                        Text(String((-28.0)/Double(-48)))
+                    }
+                } else {
+                    Image(systemName: "dot.radiowaves.up.forward")
+                }
+                    
+                // TODO: get rid of the space between search bar and navigation title
                 // Text field for entering search text
                 TextField("Search",
                           text: $searchText)
@@ -66,15 +76,27 @@ struct ContentView: View {
             }) {
                 VStack {
                     HStack {
+                        // RSSI to symbol
                         // TODO: replace rssi numbers with images
-                        Text(String(discoveredPeripherals.rssi))
+                        // rssi < -80 is far, > -50 is immediate, between is near
+                        //Text(String(discoveredPeripherals.rssi))
+                        // 0.76 is full bars, 0.25 is dot
+                        if #available(iOS 16.0, *) {
+                            Image(systemName: "dot.radiowaves.up.forward", variableValue: ((-28.0)/Double(discoveredPeripherals.rssi)))
+                                .foregroundStyle(.blue, .gray)
+                                .fontWeight(.bold)
+                        } else {
+                            //distance = pow(10, ((-56-Double(discoveredPeripherals.rssi))/(10*2)))*3.2808
+                            Text(String(pow(10, ((-56-Double(discoveredPeripherals.rssi))/(10*2)))*3.2808) + "m")
+                        }
+                        
                         Text(discoveredPeripherals.deviceName)
                             .frame(minWidth: 111, idealWidth: .infinity, maxWidth: .infinity, alignment: .leading)
                         Spacer()
                     }
-                    Text("\(discoveredPeripherals.id)\n" + "Services: \(discoveredPeripherals.advertisedData["kCBAdvDataServiceUUIDs"] ?? "None Found")")
+                    Text("\(discoveredPeripherals.id)\n"/* + "Services: \(discoveredPeripherals.advertisedData["kCBAdvDataServiceUUIDs"] ?? "None Found")"*/)
                      .font(.caption)
-                     .foregroundColor(.gray)
+                     .foregroundStyle(.gray)
                 }
                 .padding(.vertical)
             }
