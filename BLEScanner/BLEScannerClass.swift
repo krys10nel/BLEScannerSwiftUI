@@ -45,21 +45,6 @@ struct Characteristic: Identifiable {
     var readValue: String
 }
 
-struct Service: Identifiable {
-    var id: CBUUID
-    
-    var service: CBService
-}
-
-struct Characteristic: Identifiable {
-    var id: CBUUID
-    
-    var service: CBService
-    var characteristic: CBCharacteristic
-    var description: String
-    var readValue: String
-}
-
 class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
     @Published var discoveredPeripherals = [Peripheral]()
     @Published var discoveredServices =  [Service]()

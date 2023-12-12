@@ -15,7 +15,7 @@ struct DetailsView: View {
             VStack {
 
                 GeometryReader { geo in
-                    List(device.discoveredServices, id: \.id) { discoveredServices in
+                    List($device.discoveredServices, id: \.id) { discoveredServices in
                         Button(action: {
                             print("Clicked on \(discoveredServices)")
                         }) {
@@ -33,26 +33,26 @@ struct DetailsView: View {
                         .frame(minWidth: 111, idealWidth: .infinity, maxWidth: .infinity, alignment: .leading)
                     }
                     .listStyle(PlainListStyle())
-                    
-                    Spacer()
-                    Button(action: {
-                        self.device.disconnectPeripheral()
-                        //self.device.stopScan()
-                    }) {
-                        if device.isConnected {
-                            Text("Disconnect device")
-                        } else {
-                            Text("Connect to device")
-                        }
-                    }
-                    .padding()
-                    .background(self.device.isConnected ? Color.red : Color.blue)
-                    .foregroundColor(Color.white)
-                    .cornerRadius(5.0)
-                    Spacer()
                 }
-                .navigationBarItems(leading: self.device.isConnected ? Text("Connected") : Text("Disconnected"))
+                    
+                Spacer()
+                Button(action: {
+                    self.device.disconnectPeripheral()
+                    //self.device.stopScan()
+                }) {
+                    if device.isConnected {
+                        Text("Disconnect device")
+                    } else {
+                        Text("Connect to device")
+                    }
+                }
+                .padding()
+                .background(self.device.isConnected ? Color.red : Color.blue)
+                .foregroundColor(Color.white)
+                .cornerRadius(5.0)
+                Spacer()
             }
+            .navigationBarItems(leading: self.device.isConnected ? Text("Connected") : Text("Disconnected"))
         }
         .navigationBarBackButtonHidden(true)
         .navigationBarItems(leading: Button(action: {
