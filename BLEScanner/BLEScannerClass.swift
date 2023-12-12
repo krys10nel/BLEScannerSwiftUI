@@ -45,6 +45,21 @@ struct Characteristic: Identifiable {
     var readValue: String
 }
 
+struct Service: Identifiable {
+    var id: CBUUID
+    
+    var service: CBService
+}
+
+struct Characteristic: Identifiable {
+    var id: CBUUID
+    
+    var service: CBService
+    var characteristic: CBCharacteristic
+    var description: String
+    var readValue: String
+}
+
 class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
     @Published var discoveredPeripherals = [Peripheral]()
     @Published var discoveredServices =  [Service]()
@@ -53,6 +68,7 @@ class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
     @Published var isScanning = false
     @Published var isConnected = false
     @Published var isPowered = false
+
     private var centralManager: CBCentralManager!
     // Set to store unique peripherals that have been discovered
     var discoveredPeripheralSet = Set<CBPeripheral>()
@@ -238,6 +254,7 @@ extension BluetoothScanner: CBPeripheralDelegate {
     
     func peripheral(_ peripheral: CBPeripheral, didWriteValueFor descriptor: CBDescriptor, error: Error?) {
         
+
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
@@ -248,9 +265,8 @@ extension BluetoothScanner: CBPeripheralDelegate {
         guard let value = characteristic.value else { return }
         delegate?.value(data: value)
     }
-    
+    */
     func peripheral(_ peripheral: CBPeripheral, didReadRSSI RSSI: NSNumber, error: Error?) {
-        delegate?.rssi(value: Int(truncating: RSSI))
+        
     }
-     */
 }
