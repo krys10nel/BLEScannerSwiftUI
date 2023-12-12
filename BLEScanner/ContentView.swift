@@ -22,6 +22,7 @@ struct ContentView: View {
                 NavigationLink("", destination: DetailsView(device: bluetoothScanner), isActive: $bluetoothScanner.isConnected)
                     
                 // TODO: get rid of the space between search bar and navigation title
+
                 // Text field for entering search text
                 TextField("Search",
                           text: $searchText)
@@ -98,6 +99,7 @@ struct ContentView: View {
                         }
                     }
                     .padding(.vertical)
+
                 }
                 .listRowInsets(.init(top: 0, leading: 0, bottom: 0, trailing: 0))
                 .frame(minWidth: 200, idealWidth: .infinity, maxWidth: .infinity, alignment: .leading)

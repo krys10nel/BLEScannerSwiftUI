@@ -13,6 +13,7 @@ struct DetailsView: View {
     var body: some View {
         NavigationView{
             VStack {
+
                 GeometryReader { geo in
                     List(device.discoveredServices, id: \.id) { discoveredServices in
                         Button(action: {

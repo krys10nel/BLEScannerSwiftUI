@@ -16,6 +16,33 @@ struct Peripheral: Identifiable {
     var deviceName: String
     var advertisedData: [String : Any]
     var rssi: Int
+    /*
+    init(_peripheral: CBPeripheral,
+        _deviceName: String,
+        _advertisedData: [String : Any],
+        _rssi: NSNumber) {
+        id = UUID()
+        peripheral = _peripheral
+        deviceName = _deviceName
+        advertisedData = _advertisedData
+        rssi = _rssi.intValue
+        }
+     */
+}
+
+struct Service: Identifiable {
+    var id: CBUUID
+    
+    var service: CBService
+}
+
+struct Characteristic: Identifiable {
+    var id: CBUUID
+    
+    var service: CBService
+    var characteristic: CBCharacteristic
+    var description: String
+    var readValue: String
 }
 
 struct Service: Identifiable {
@@ -227,6 +254,7 @@ extension BluetoothScanner: CBPeripheralDelegate {
     
     func peripheral(_ peripheral: CBPeripheral, didWriteValueFor descriptor: CBDescriptor, error: Error?) {
         
+
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
