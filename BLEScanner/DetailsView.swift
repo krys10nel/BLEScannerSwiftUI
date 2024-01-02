@@ -13,19 +13,36 @@ struct DetailsView: View {
     var body: some View {
         NavigationView{
             VStack {
-
                 GeometryReader { geo in
-                    List($device.discoveredServices, id: \.id) { discoveredServices in
+                    List(device.discoveredServices, id: \.uuid) { service in
                         Button(action: {
-                            print("Clicked on \(discoveredServices)")
+                            print("Clicked on \(service.uuid)")
                         }) {
                             VStack {
                                 HStack {
-                                    Text("\(discoveredServices.id)")
+                                    // TODO: fit id into list, no wrapping
+                                    Text("\(service.uuid)")
                                         .frame(minWidth: 111, idealWidth: .infinity, maxWidth: .infinity, alignment: .leading)
                                     Spacer()
                                 }
-                                characteristicView
+                                //characteristicView
+                                //TODO: input characteristics for services
+                                ForEach(device.discoveredCharacteristics, id: \.uuid) { characteristic in
+                                    if characteristic.service.uuid == service.uuid {
+                                        Button(action: {
+                                            print("Clicked on \(characteristic.uuid)")
+                                        }) {
+                                            VStack {
+                                                HStack {
+                                                        Image(systemName: "togglepower")
+                                                            .imageScale(.large)
+                                                        Text("\(characteristic.uuid)")
+                                                            .frame(minWidth: 111, idealWidth: .infinity, maxWidth: .infinity, alignment: .leading)
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
                             }
                             .padding()
                         }
@@ -69,17 +86,10 @@ struct DetailsView: View {
         })
     }
     
-    private var characteristicView: some View {
-        //TODO: input characteristics for services
-        List {
-            HStack {
-                Text("Characteristic 1")
-                    .font(.caption)
-                    .foregroundStyle(.gray)
-                Spacer()
-            }
-        }
-    }
+//    private var characteristicView: some View {
+//        ForEach($device.discoveredCharacteristics) { discoveredCharacteristics in
+//            Text("Service Name: \(discoveredCharacteristics.id)")}
+//    }
 }
 
 #Preview {

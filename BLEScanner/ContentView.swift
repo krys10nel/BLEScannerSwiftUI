@@ -22,6 +22,7 @@ struct ContentView: View {
                 NavigationLink("", destination: DetailsView(device: bluetoothScanner), isActive: $bluetoothScanner.isConnected)
                     
                 // TODO: get rid of the space between search bar and navigation title
+                // TODO: add loading screen
 
                 // Text field for entering search text
                 TextField("Search",
