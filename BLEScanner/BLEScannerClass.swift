@@ -31,8 +31,8 @@ struct Characteristic: Identifiable {
     var uuid: CBUUID
     var service: CBService
     var characteristic: CBCharacteristic
-    //var description: String
-    //var readValue: String
+    var description: String
+    var readValue: String
 }
 
 class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
@@ -195,6 +195,20 @@ class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
         discoveredCharacteristics.removeAll()
         print("isConnected : \(isConnected)")
     }
+    
+    func readValue(characteristic: CBCharacteristic) {
+        self.connectedPeripheral?.peripheral.readValue(for: characteristic)
+    }
+    
+    func write(value: Data, characteristic: Characteristic) {
+        // if ((connectedPeripheral?.peripheral.canSendWriteWithoutResponse) != nil) {
+        self.connectedPeripheral?.peripheral.writeValue(value, for: characteristic.characteristic, type: .withoutResponse)
+        // }
+    }
+    /*
+    func peripheralIsReady(toSendWriteWithoutResponse peripheral: CBPeripheral) {
+        write(value: someValue, characteristic: someCharacteristic)
+    }*/
 }
 
 extension BluetoothScanner: CBPeripheralDelegate {
@@ -206,7 +220,7 @@ extension BluetoothScanner: CBPeripheralDelegate {
         }
         
         print("didDiscoverServices")
-        print(discoveredServices)
+        // print(discoveredServices)
     }
     
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
@@ -226,45 +240,63 @@ extension BluetoothScanner: CBPeripheralDelegate {
 //            }
 //        }
         for characteristic in characteristics {
-            discoveredCharacteristics.append(Characteristic(uuid: characteristic.uuid, service: service, characteristic: characteristic))
+            discoveredCharacteristics.append(Characteristic(uuid: characteristic.uuid, service: service, characteristic: characteristic, description: "", readValue: ""))
             print("found characteristic: \(characteristic.uuid) for service: \(characteristic.service!.uuid)")
+            peripheral.readValue(for: characteristic)
             peripheral.discoverDescriptors(for: characteristic)
         }
         print("didDiscoverCharacteristics")
         print(discoveredCharacteristics)
     }
     
+    func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
+        guard let value = characteristic.value else { return }
+        
+        // Find the corresponding Characteristic in the array
+        if let index = discoveredCharacteristics.firstIndex(where: { $0.uuid.uuidString == characteristic.uuid.uuidString }) {
+            // Create a new Characteristic instance with updated readValue
+            var updatedCharacteristic = discoveredCharacteristics[index]
+            updatedCharacteristic.readValue = value.map { String(format: "%02X", $0) }.joined()
+            
+            // Update the array with modified Characteristic
+            discoveredCharacteristics[index] = updatedCharacteristic
+        }
+    }
+    
+    func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
+        if let error = error {
+            return
+        }
+        print("Successfully didWriteValueFor \(characteristic.uuid.uuidString)")
+    }
+    
     // TODO: read descriptors etc.
     func peripheral(_ peripheral: CBPeripheral, didDiscoverDescriptorsFor characteristic: CBCharacteristic, error: Error?) {
         guard let descriptors = characteristic.descriptors else { return }
         
-        // Get user descriptionn descriptor
-        if let userDescriptionDescriptor = descriptors.first(where:  {
-            return $0.uuid.uuidString == CBUUIDCharacteristicUserDescriptionString
-        }) {
+        // Get user description descriptor
+        if let index = descriptors.firstIndex(where: { $0.uuid.uuidString == CBUUIDCharacteristicUserDescriptionString }) {
             // Read user description for characteristic
-            peripheral.readValue(for: userDescriptionDescriptor)
+            var updatedDescriptor = discoveredCharacteristics[index]
+            updatedDescriptor.readValue = String(describing: descriptors)
+            
+            discoveredCharacteristics[index] = updatedDescriptor
         }
         print("didDiscoverDescriptorsFor: \(characteristic)")
+        print("Descriptors: \(String(describing: characteristic.descriptors))")
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor descriptor: CBDescriptor, error: Error?) {
-        print("didUpdateValueFor")
-    }
-    
-    func peripheral(_ peripheral: CBPeripheral, didWriteValueFor descriptor: CBDescriptor, error: Error?) {
-        print("didWriteValueFor")
+        if descriptor.uuid.uuidString == CBUUIDCharacteristicUserDescriptionString, let userDescription = descriptor.value as? String {
+            print("Characteristic \(String(describing: descriptor.characteristic?.uuid.uuidString)) is also known as \(userDescription)")
+        }
+        print("didUpdateValueFor: \(descriptor)")
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
         
     }
-    /*
-    func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
-        guard let value = characteristic.value else { return }
-        delegate?.value(data: value)
-    }
-    */
+    
     func peripheral(_ peripheral: CBPeripheral, didReadRSSI RSSI: NSNumber, error: Error?) {
         
     }

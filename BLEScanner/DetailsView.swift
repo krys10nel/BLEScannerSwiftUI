@@ -9,7 +9,9 @@ import SwiftUI
 
 struct DetailsView: View {
     @ObservedObject var device : BluetoothScanner
+    // @State var isOn : Bool = false
     
+    // TODO: stay on device screen when disconnecting
     var body: some View {
         NavigationView{
             VStack {
@@ -20,24 +22,47 @@ struct DetailsView: View {
                         }) {
                             VStack {
                                 HStack {
-                                    // TODO: fit id into list, no wrapping
+                                    // TODO: change uuid to characteristic name (assuming it exists in firmware)
                                     Text("\(service.uuid)")
                                         .frame(minWidth: 111, idealWidth: .infinity, maxWidth: .infinity, alignment: .leading)
+                                        .foregroundStyle(.red)
+                                        .lineLimit(1)
                                     Spacer()
                                 }
                                 //characteristicView
-                                //TODO: input characteristics for services
+                                // TODO: put this in another file or in another var
                                 ForEach(device.discoveredCharacteristics, id: \.uuid) { characteristic in
                                     if characteristic.service.uuid == service.uuid {
-                                        Button(action: {
-                                            print("Clicked on \(characteristic.uuid)")
-                                        }) {
-                                            VStack {
-                                                HStack {
-                                                        Image(systemName: "togglepower")
-                                                            .imageScale(.large)
-                                                        Text("\(characteristic.uuid)")
-                                                            .frame(minWidth: 111, idealWidth: .infinity, maxWidth: .infinity, alignment: .leading)
+                                        let properties = characteristic.characteristic.properties
+                                        VStack {
+                                            // Characteristic in service
+                                            Spacer()
+                                            Text("\(characteristic.uuid)")
+                                                .frame(minWidth: 111, idealWidth: .infinity, maxWidth: .infinity, alignment: .leading)
+                                            HStack {
+                                                // TODO: add condition for nav strobe and position etc.
+                                                if properties.contains(.write) {
+                                                    HStack {
+                                                        Button(action: {
+                                                            print("Clicked on \(characteristic)")
+                                                            // self.isOn.toggle()
+                                                            // TODO: write value into characteristic
+                                                            /*if characteristic.readValue == "01" {
+                                                                let writeValue = Data([0x00])
+                                                                write(writeValue, characteristic.characteristic)
+                                                                
+                                                                
+                                                             } else {
+                                                             
+                                                             }*/
+                                                        }) {
+                                                            /*Image(systemName: self.isOn == true ? "poweron" : "poweroff")
+                                                             .foregroundStyle(self.isOn == true ? Color.green : Color.red)
+                                                             */
+                                                            Image(systemName: "power.circle")
+                                                                .imageScale(.large)
+                                                        }
+                                                    }
                                                 }
                                             }
                                         }
