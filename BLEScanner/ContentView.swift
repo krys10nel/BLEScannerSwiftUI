@@ -2,7 +2,7 @@
 //  ContentView.swift
 //  BLEScanner
 //
-//  Created by Christian Möller on 02.01.23.
+//  Created by Krystene Maceda on 11/30/23.
 //
 
 import SwiftUI
@@ -23,6 +23,7 @@ struct ContentView: View {
                     
                 // TODO: get rid of the space between search bar and navigation title
                 // TODO: add loading screen
+                // TODO: filter for company lights only
 
                 // Text field for entering search text
                 TextField("Search",

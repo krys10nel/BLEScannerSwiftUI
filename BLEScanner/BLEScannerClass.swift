@@ -2,7 +2,7 @@
 //  ContentView.swift
 //  BLEScanner
 //
-//  Created by Christian Möller on 02.01.23.
+//  Created by Krystene Maceda on 11/30/23.
 //
 
 import SwiftUI
@@ -49,6 +49,7 @@ class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
     var discoveredPeripheralSet = Set<CBPeripheral>()
     var timer: Timer?
     
+    // TODO: Connect to 2 bluetooth devices
     @Published var connectedPeripheral: Peripheral!
     
     private var readCharacteristic: CBCharacteristic?
@@ -84,22 +85,6 @@ class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
     }
 
     func centralManager(_ central: CBCentralManager, didDiscover peripheral: CBPeripheral, advertisementData: [String : Any], rssi RSSI: NSNumber) {
-        // Build a string representation of the advertised data and sort it by names
-        // var advertisedData = advertisementData.map { "\($0): \($1)" }.sorted(by: { $0 < $1 }).joined(separator: "\n")
-        
-        // let serviceUUID = advertisementData["kCBAdvDataServiceUUIDs"]
-        
-        // let advertisedData = "ID: \(peripheral.identifier)\n" + "Service UUIDs: \(serviceUUID ?? "None")\n"
-
-        // Convert the timestamp into human readable format and insert it to the advertisedData String
-        /* let timestampValue = advertisementData["kCBAdvDataTimestamp"] as! Double
-        // print(timestampValue)
-        let dateFormatter = DateFormatter()
-        dateFormatter.dateFormat = "HH:mm:ss"
-        let dateString = dateFormatter.string(from: Date(timeIntervalSince1970: timestampValue))
-
-        advertisedData = "actual rssi: \(RSSI) dB\n" + "Timestamp: \(dateString)\n" + advertisedData
-        */
         var peripheralName: String!
         
         // Checks if LocalNameKey can be type-casted to name as a String, otherwise name will be nil
@@ -200,15 +185,27 @@ class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
         self.connectedPeripheral?.peripheral.readValue(for: characteristic)
     }
     
-    func write(value: Data, characteristic: Characteristic) {
+    func write(value: Data, characteristic: CBCharacteristic) {
         // if ((connectedPeripheral?.peripheral.canSendWriteWithoutResponse) != nil) {
-        self.connectedPeripheral?.peripheral.writeValue(value, for: characteristic.characteristic, type: .withoutResponse)
+        self.connectedPeripheral?.peripheral.writeValue(value, for: characteristic, type: .withoutResponse)
+        readValue(characteristic: characteristic)
         // }
     }
+    
     /*
     func peripheralIsReady(toSendWriteWithoutResponse peripheral: CBPeripheral) {
         write(value: someValue, characteristic: someCharacteristic)
     }*/
+    
+    func toggleCharacteristic(characteristic: Characteristic) {
+        if characteristic.readValue == "01" {
+            let writeValue = Data([0x00])
+            write(value: writeValue, characteristic: characteristic.characteristic)
+         } else {
+             let writeValue = Data([0x01])
+             write(value: writeValue, characteristic: characteristic.characteristic)
+         }
+    }
 }
 
 extension BluetoothScanner: CBPeripheralDelegate {
@@ -225,20 +222,7 @@ extension BluetoothScanner: CBPeripheralDelegate {
     
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
         guard let characteristics = service.characteristics else { return }
-//        for characteristic in characteristics {
-//            switch characteristic.properties {
-//            case .read:
-//                readCharacteristic = characteristic
-//            case .write:
-//                writeCharacteristic = characteristic
-//            case .notify:
-//                notifyCharacteristic = characteristic
-//                peripheral.setNotifyValue(true, for: characteristic)
-//            case .indicate: break
-//            case .broadcast: break
-//            default: break
-//            }
-//        }
+        
         for characteristic in characteristics {
             discoveredCharacteristics.append(Characteristic(uuid: characteristic.uuid, service: service, characteristic: characteristic, description: "", readValue: ""))
             print("found characteristic: \(characteristic.uuid) for service: \(characteristic.service!.uuid)")
@@ -264,13 +248,13 @@ extension BluetoothScanner: CBPeripheralDelegate {
     }
     
     func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
-        if let error = error {
+        if error != nil {
+            print("Unsuccessful didWriteValueFor \(characteristic.uuid.uuidString)")
             return
         }
         print("Successfully didWriteValueFor \(characteristic.uuid.uuidString)")
     }
     
-    // TODO: read descriptors etc.
     func peripheral(_ peripheral: CBPeripheral, didDiscoverDescriptorsFor characteristic: CBCharacteristic, error: Error?) {
         guard let descriptors = characteristic.descriptors else { return }
         

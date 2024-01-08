@@ -9,9 +9,9 @@ import SwiftUI
 
 struct DetailsView: View {
     @ObservedObject var device : BluetoothScanner
-    // @State var isOn : Bool = false
     
-    // TODO: stay on device screen when disconnecting
+    // TODO: stay on device screen when disconnecting (for option to reconnect)
+    // TODO: keep device name on details view
     var body: some View {
         NavigationView{
             VStack {
@@ -30,43 +30,38 @@ struct DetailsView: View {
                                     Spacer()
                                 }
                                 //characteristicView
-                                // TODO: put this in another file or in another var
-                                ForEach(device.discoveredCharacteristics, id: \.uuid) { characteristic in
-                                    if characteristic.service.uuid == service.uuid {
-                                        let properties = characteristic.characteristic.properties
-                                        VStack {
-                                            // Characteristic in service
-                                            Spacer()
-                                            Text("\(characteristic.uuid)")
-                                                .frame(minWidth: 111, idealWidth: .infinity, maxWidth: .infinity, alignment: .leading)
-                                            HStack {
-                                                // TODO: add condition for nav strobe and position etc.
-                                                if properties.contains(.write) {
-                                                    HStack {
-                                                        Button(action: {
-                                                            print("Clicked on \(characteristic)")
-                                                            // self.isOn.toggle()
-                                                            // TODO: write value into characteristic
-                                                            /*if characteristic.readValue == "01" {
-                                                                let writeValue = Data([0x00])
-                                                                write(writeValue, characteristic.characteristic)
-                                                                
-                                                                
-                                                             } else {
-                                                             
-                                                             }*/
-                                                        }) {
-                                                            /*Image(systemName: self.isOn == true ? "poweron" : "poweroff")
-                                                             .foregroundStyle(self.isOn == true ? Color.green : Color.red)
-                                                             */
-                                                            Image(systemName: "power.circle")
-                                                                .imageScale(.large)
-                                                        }
+                                HStack(alignment: .top) {
+                                    ForEach(device.discoveredCharacteristics, id: \.uuid) { characteristic in
+                                        if characteristic.service.uuid == service.uuid {
+                                            let properties = characteristic.characteristic.properties
+                                            //HStack {
+                                            // TODO: light controls ONLY as buttons
+                                            // TODO: device information etc. are gray captioned
+                                            if properties.contains(.write) {
+                                                //HStack {
+                                                Button(action: {
+                                                    print("Clicked on \(characteristic)")
+                                                    self.device.toggleCharacteristic(characteristic: characteristic)
+                                                }) {
+                                                    VStack {
+                                                        Text("\(characteristic.uuid)")
+                                                            .frame(idealWidth: .infinity, maxWidth: .infinity, alignment: .leading)
+                                                            .foregroundStyle(.white)
+                                                            .lineLimit(1)
+                                                        Spacer()
+                                                        // TODO: Bigger button
+                                                        Image(systemName: "power.circle")
+                                                            .imageScale(.large)
+                                                            .foregroundStyle(characteristic.readValue == "01" ? Color.green : Color.gray)
                                                     }
+                                                    .frame(width: geo.size.width * 0.20, alignment: .topLeading)
                                                 }
+                                                //}
                                             }
+                                            //}
                                         }
                                     }
+                                    Spacer()
                                 }
                             }
                             .padding()
