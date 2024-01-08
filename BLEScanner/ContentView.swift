@@ -53,10 +53,9 @@ struct ContentView: View {
                 .foregroundColor(Color.white)
                 .cornerRadius(5.0)
             }
-            .navigationBarTitle(Text("Bluetooth Devices"))
-            .navigationBarItems(trailing: bluetoothScanner.isPowered ? Text("Bluetooth ON").foregroundColor(.green) : Text("Bluetooth OFF").foregroundColor(.red))
-            .navigationViewStyle(StackNavigationViewStyle())
-            .padding()
+            .navigationTitle(Text("Bluetooth Devices"))
+            .navigationBarTitleDisplayMode(.automatic)
+            .navigationBarItems(trailing: bluetoothScanner.isPowered ? Text("BT ON").foregroundColor(.green) : Text("BT OFF").foregroundColor(.red))
         }
     }
     
@@ -68,6 +67,7 @@ struct ContentView: View {
             }, id: \.id) { discoveredPeripherals in
                 Button(action: {
                     self.bluetoothScanner.connectPeripheral(discoveredPeripherals)
+                    self.bluetoothScanner.stopScan()
                 }) {
                     HStack {
                             // RSSI to symbol, normalized to range 0-1 using max -40 and min -105

@@ -11,9 +11,8 @@ struct DetailsView: View {
     @ObservedObject var device : BluetoothScanner
     
     // TODO: stay on device screen when disconnecting (for option to reconnect)
-    // TODO: keep device name on details view
     var body: some View {
-        NavigationView{
+        ZStack {
             VStack {
                 GeometryReader { geo in
                     List(device.discoveredServices, id: \.uuid) { service in
@@ -30,35 +29,48 @@ struct DetailsView: View {
                                     Spacer()
                                 }
                                 //characteristicView
-                                HStack(alignment: .top) {
+                                // TODO: light controls ONLY, as buttons
+                                // TODO: device information etc. are gray captioned
+                                VStack {
                                     ForEach(device.discoveredCharacteristics, id: \.uuid) { characteristic in
                                         if characteristic.service.uuid == service.uuid {
                                             let properties = characteristic.characteristic.properties
-                                            //HStack {
-                                            // TODO: light controls ONLY as buttons
-                                            // TODO: device information etc. are gray captioned
+                                            if properties.contains(.read) && !properties.contains(.write) {
+                                                VStack {
+                                                    Text("\(characteristic.uuid) : \(characteristic.readValue)")
+                                                        .frame(idealWidth: .infinity, maxWidth: .infinity, alignment: .leading)
+                                                        .foregroundStyle(.gray)
+                                                        .font(.caption)
+                                                        .lineLimit(2)
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                                // Buttons only
+                                HStack {
+                                    ForEach(device.discoveredCharacteristics, id: \.uuid) { characteristic in
+                                        if characteristic.service.uuid == service.uuid {
+                                            let properties = characteristic.characteristic.properties
                                             if properties.contains(.write) {
-                                                //HStack {
-                                                Button(action: {
-                                                    print("Clicked on \(characteristic)")
-                                                    self.device.toggleCharacteristic(characteristic: characteristic)
-                                                }) {
-                                                    VStack {
-                                                        Text("\(characteristic.uuid)")
-                                                            .frame(idealWidth: .infinity, maxWidth: .infinity, alignment: .leading)
-                                                            .foregroundStyle(.white)
-                                                            .lineLimit(1)
-                                                        Spacer()
-                                                        // TODO: Bigger button
+                                                VStack {
+                                                    Spacer()
+                                                    Text("\(characteristic.uuid)")
+                                                        .frame(idealWidth: .infinity, maxWidth: .infinity, alignment: .leading)
+                                                        .foregroundStyle(.white)
+                                                        .lineLimit(1)
+                                                    Spacer()
+                                                    Button(action: {
+                                                        print("Clicked on \(characteristic)")
+                                                        self.device.toggleCharacteristic(characteristic: characteristic)
+                                                    }) {
                                                         Image(systemName: "power.circle")
-                                                            .imageScale(.large)
+                                                            .font(.system(size: 50))
                                                             .foregroundStyle(characteristic.readValue == "01" ? Color.green : Color.gray)
                                                     }
-                                                    .frame(width: geo.size.width * 0.20, alignment: .topLeading)
                                                 }
-                                                //}
+                                                .frame(width: geo.size.width * 0.25, alignment: .topLeading)
                                             }
-                                            //}
                                         }
                                     }
                                     Spacer()
@@ -89,7 +101,8 @@ struct DetailsView: View {
                 .cornerRadius(5.0)
                 Spacer()
             }
-            .navigationBarItems(leading: self.device.isConnected ? Text("Connected") : Text("Disconnected"))
+            .navigationBarTitle(self.device.connectedPeripheral.deviceName)
+            .navigationBarItems(trailing: self.device.isConnected ? Text("Connected") : Text("Disconnected"))
         }
         .navigationBarBackButtonHidden(true)
         .navigationBarItems(leading: Button(action: {
@@ -101,7 +114,7 @@ struct DetailsView: View {
         }) {
             HStack {
                 Image(systemName: "chevron.left")
-                Text("Return and disconnect")
+                Text("Return")
             }
         })
     }

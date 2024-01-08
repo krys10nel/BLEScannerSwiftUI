@@ -197,6 +197,22 @@ class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
         write(value: someValue, characteristic: someCharacteristic)
     }*/
     
+    func convertHexValueToASCII(hexValue: String) -> String {
+        var hex = hexValue
+        var asciiString = ""
+        
+        while !hex.isEmpty {
+            let hexPair = hex.prefix(2)
+            hex = String(hex.dropFirst(2))
+            
+            if let byte = UInt8(hexPair, radix: 16) {
+                asciiString.append(Character(UnicodeScalar(byte)))
+            }
+        }
+        
+        return asciiString
+    }
+    
     func toggleCharacteristic(characteristic: Characteristic) {
         if characteristic.readValue == "01" {
             let writeValue = Data([0x00])
@@ -240,13 +256,20 @@ extension BluetoothScanner: CBPeripheralDelegate {
         if let index = discoveredCharacteristics.firstIndex(where: { $0.uuid.uuidString == characteristic.uuid.uuidString }) {
             // Create a new Characteristic instance with updated readValue
             var updatedCharacteristic = discoveredCharacteristics[index]
-            updatedCharacteristic.readValue = value.map { String(format: "%02X", $0) }.joined()
+            // updatedCharacteristic.readValue = value.map { String(format: "%02X", $0) }.joined()
+            let hexValue = value.map { String(format: "%02X", $0) }.joined()
+            
+            if value.count > 2 {
+                updatedCharacteristic.readValue = convertHexValueToASCII(hexValue: hexValue)
+            } else {
+                updatedCharacteristic.readValue = hexValue
+            }
             
             // Update the array with modified Characteristic
             discoveredCharacteristics[index] = updatedCharacteristic
         }
     }
-    
+        
     func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
         if error != nil {
             print("Unsuccessful didWriteValueFor \(characteristic.uuid.uuidString)")
