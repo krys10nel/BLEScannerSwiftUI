@@ -9,6 +9,7 @@ import SwiftUI
 import CoreBluetooth
 
 struct ContentView: View {
+    @State private var isLoading = true
     @ObservedObject var bluetoothScanner = BluetoothScanner()
     @State private var searchText = ""
     
@@ -17,46 +18,58 @@ struct ContentView: View {
     }
 
     var body: some View {
-        NavigationView {
-            VStack {
-                NavigationLink("", destination: DetailsView(device: bluetoothScanner), isActive: $bluetoothScanner.isConnected)
-                    
-                // TODO: get rid of the space between search bar and navigation title
-                // TODO: add loading screen
-                // TODO: filter for company lights only
-
-                // Text field for entering search text
-//                TextField("Search",
-//                          text: $searchText)
-//                .onAppear{UITextField.appearance().clearButtonMode = .whileEditing}
-//                .textFieldStyle(RoundedBorderTextFieldStyle())
-                
-                deviceCards
-                
-                Spacer()
-                // Button for starting or stopping scanning
-                Button(action: {
-                    if self.bluetoothScanner.isScanning {
-                        self.bluetoothScanner.stopScan()
-                    } else {
-                        self.bluetoothScanner.startScan()
+        Group {
+            if isLoading {
+                LoadingView()
+                    .onAppear {
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
+                            withAnimation {
+                                isLoading = false
+                            }
+                        }
                     }
-                }) {
-                    if bluetoothScanner.isScanning {
-                        Text("Stop Scanning")
-                    } else {
-                        Text("Scan for Devices")
+            } else {
+                NavigationView {
+                    VStack {
+                        NavigationLink("", destination: DetailsView(device: bluetoothScanner), isActive: $bluetoothScanner.isConnected)
+                        
+                        // TODO: add loading screen
+                        // TODO: filter for company lights only
+                        
+                        // Text field for entering search text
+                        //                TextField("Search",
+                        //                          text: $searchText)
+                        //                .onAppear{UITextField.appearance().clearButtonMode = .whileEditing}
+                        //                .textFieldStyle(RoundedBorderTextFieldStyle())
+                        
+                        deviceCards
+                        
+                        Spacer()
+                        // Button for starting or stopping scanning
+                        Button(action: {
+                            if self.bluetoothScanner.isScanning {
+                                self.bluetoothScanner.stopScan()
+                            } else {
+                                self.bluetoothScanner.startScan()
+                            }
+                        }) {
+                            if bluetoothScanner.isScanning {
+                                Text("Stop Scanning")
+                            } else {
+                                Text("Scan for Devices")
+                            }
+                        }
+                        .padding()
+                        .background(bluetoothScanner.isScanning ? Color.red : Color.blue)
+                        .foregroundStyle(Color.white)
+                        .cornerRadius(5.0)
                     }
+                    .navigationTitle(Text("Bluetooth Devices"))
+                    .navigationBarTitleDisplayMode(.automatic)
+                    .navigationBarItems(trailing: bluetoothScanner.isPowered ? Text("BT ON").foregroundStyle(.green) : Text("BT OFF").foregroundStyle(.red))
+                    .searchable(text: $searchText)
                 }
-                .padding()
-                .background(bluetoothScanner.isScanning ? Color.red : Color.blue)
-                .foregroundStyle(Color.white)
-                .cornerRadius(5.0)
             }
-            .navigationTitle(Text("Bluetooth Devices"))
-            .navigationBarTitleDisplayMode(.automatic)
-            .navigationBarItems(trailing: bluetoothScanner.isPowered ? Text("BT ON").foregroundStyle(.green) : Text("BT OFF").foregroundStyle(.red))
-            .searchable(text: $searchText)
         }
     }
     
@@ -96,7 +109,7 @@ struct ContentView: View {
                             Text(discoveredPeripherals.deviceName)
                                 .frame(minWidth: 0, idealWidth: .infinity, maxWidth: .infinity, alignment: .leading)
                             Spacer()
-                            Text("\(discoveredPeripherals.id)\n"/* + "Services: \(discoveredPeripherals.advertisedData["kCBAdvDataServiceUUIDs"] ?? "None Found")"*/)
+                            Text("\(discoveredPeripherals.id)")
                                 .font(.caption)
                                 .foregroundStyle(.gray)
                         }
@@ -112,24 +125,24 @@ struct ContentView: View {
     }
 }
 
-struct SuperTextField: View {
-    var placeholder: Text
-    @Binding var text: String
-    var editingChanged: (Bool)->() = { _ in }
-    var commit: ()->() = { }
-    
-    var body: some View {
-        ZStack(alignment: .leading) {
-            if text.isEmpty { placeholder }
-            TextField(
-                "",
-                text: $text,
-                onEditingChanged: editingChanged,
-                onCommit: commit
-            )
-        }
-    }
-}
+//struct SuperTextField: View {
+//    var placeholder: Text
+//    @Binding var text: String
+//    var editingChanged: (Bool)->() = { _ in }
+//    var commit: ()->() = { }
+//    
+//    var body: some View {
+//        ZStack(alignment: .leading) {
+//            if text.isEmpty { placeholder }
+//            TextField(
+//                "",
+//                text: $text,
+//                onEditingChanged: editingChanged,
+//                onCommit: commit
+//            )
+//        }
+//    }
+//}
 
 struct Previews: PreviewProvider {
     static var previews: some View {

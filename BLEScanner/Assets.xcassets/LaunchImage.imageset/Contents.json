@@ -1,0 +1,23 @@
+{
+  "images" : [
+    {
+      "filename" : "aveo_engineering_llc_logo.jpg",
+      "idiom" : "universal",
+      "scale" : "1x"
+    },
+    {
+      "filename" : "aveo_engineering_llc_logo(1).jpg",
+      "idiom" : "universal",
+      "scale" : "2x"
+    },
+    {
+      "filename" : "aveo_engineering_llc_logo(2).jpg",
+      "idiom" : "universal",
+      "scale" : "3x"
+    }
+  ],
+  "info" : {
+    "author" : "xcode",
+    "version" : 1
+  }
+}
