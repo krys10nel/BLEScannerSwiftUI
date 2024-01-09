@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		1B2D762C2B4DD58700CBDF5B /* LoadingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B2D762B2B4DD58700CBDF5B /* LoadingView.swift */; };
 		1B2FA6532B192C790036F5BE /* DetailsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1B2FA6522B192C790036F5BE /* DetailsView.swift */; };
 		96F75A072962D9EF00D36D9F /* BLEScannerApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F75A062962D9EF00D36D9F /* BLEScannerApp.swift */; };
 		96F75A092962D9EF00D36D9F /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 96F75A082962D9EF00D36D9F /* ContentView.swift */; };
@@ -16,6 +17,7 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		1B2D762B2B4DD58700CBDF5B /* LoadingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingView.swift; sourceTree = "<group>"; };
 		1B2FA6522B192C790036F5BE /* DetailsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DetailsView.swift; sourceTree = "<group>"; };
 		96EC7A282966FED200D07500 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		96F75A032962D9EF00D36D9F /* BLEScanner.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = BLEScanner.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -62,6 +64,7 @@
 				96FF6D5D2965BF5E009BC20C /* BLEScannerClass.swift */,
 				1B2FA6522B192C790036F5BE /* DetailsView.swift */,
 				96F75A082962D9EF00D36D9F /* ContentView.swift */,
+				1B2D762B2B4DD58700CBDF5B /* LoadingView.swift */,
 				96F75A0A2962D9F100D36D9F /* Assets.xcassets */,
 				96F75A0C2962D9F100D36D9F /* BLEScanner.entitlements */,
 				96F75A0D2962D9F100D36D9F /* Preview Content */,
@@ -150,6 +153,7 @@
 				96F75A092962D9EF00D36D9F /* ContentView.swift in Sources */,
 				1B2FA6532B192C790036F5BE /* DetailsView.swift in Sources */,
 				96FF6D5E2965BF5E009BC20C /* BLEScannerClass.swift in Sources */,
+				1B2D762C2B4DD58700CBDF5B /* LoadingView.swift in Sources */,
 				96F75A072962D9EF00D36D9F /* BLEScannerApp.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -311,7 +315,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.cmg-software.blescannerswiftui";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -355,7 +360,8 @@
 				PRODUCT_BUNDLE_IDENTIFIER = "com.cmg-software.blescannerswiftui";
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = auto;
-				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator macosx";
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SUPPORTS_MACCATALYST = NO;
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = "1,2";
