@@ -2,7 +2,7 @@
 //  ContentView.swift
 //  BLEScanner
 //
-//  Created by Christian Möller on 02.01.23.
+//  Created by Krystene Maceda on 11/30/23.
 //
 
 import SwiftUI
@@ -23,12 +23,13 @@ struct ContentView: View {
                     
                 // TODO: get rid of the space between search bar and navigation title
                 // TODO: add loading screen
+                // TODO: filter for company lights only
 
                 // Text field for entering search text
-                TextField("Search",
-                          text: $searchText)
-                .onAppear{UITextField.appearance().clearButtonMode = .whileEditing}
-                .textFieldStyle(RoundedBorderTextFieldStyle())
+//                TextField("Search",
+//                          text: $searchText)
+//                .onAppear{UITextField.appearance().clearButtonMode = .whileEditing}
+//                .textFieldStyle(RoundedBorderTextFieldStyle())
                 
                 deviceCards
                 
@@ -49,13 +50,13 @@ struct ContentView: View {
                 }
                 .padding()
                 .background(bluetoothScanner.isScanning ? Color.red : Color.blue)
-                .foregroundColor(Color.white)
+                .foregroundStyle(Color.white)
                 .cornerRadius(5.0)
             }
-            .navigationBarTitle(Text("Bluetooth Devices"))
-            .navigationBarItems(trailing: bluetoothScanner.isPowered ? Text("Bluetooth ON").foregroundColor(.green) : Text("Bluetooth OFF").foregroundColor(.red))
-            .navigationViewStyle(StackNavigationViewStyle())
-            .padding()
+            .navigationTitle(Text("Bluetooth Devices"))
+            .navigationBarTitleDisplayMode(.automatic)
+            .navigationBarItems(trailing: bluetoothScanner.isPowered ? Text("BT ON").foregroundStyle(.green) : Text("BT OFF").foregroundStyle(.red))
+            .searchable(text: $searchText)
         }
     }
     
@@ -67,6 +68,7 @@ struct ContentView: View {
             }, id: \.id) { discoveredPeripherals in
                 Button(action: {
                     self.bluetoothScanner.connectPeripheral(discoveredPeripherals)
+                    self.bluetoothScanner.stopScan()
                 }) {
                     HStack {
                             // RSSI to symbol, normalized to range 0-1 using max -40 and min -105
