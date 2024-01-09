@@ -26,10 +26,10 @@ struct ContentView: View {
                 // TODO: filter for company lights only
 
                 // Text field for entering search text
-                TextField("Search",
-                          text: $searchText)
-                .onAppear{UITextField.appearance().clearButtonMode = .whileEditing}
-                .textFieldStyle(RoundedBorderTextFieldStyle())
+//                TextField("Search",
+//                          text: $searchText)
+//                .onAppear{UITextField.appearance().clearButtonMode = .whileEditing}
+//                .textFieldStyle(RoundedBorderTextFieldStyle())
                 
                 deviceCards
                 
@@ -50,12 +50,13 @@ struct ContentView: View {
                 }
                 .padding()
                 .background(bluetoothScanner.isScanning ? Color.red : Color.blue)
-                .foregroundColor(Color.white)
+                .foregroundStyle(Color.white)
                 .cornerRadius(5.0)
             }
             .navigationTitle(Text("Bluetooth Devices"))
             .navigationBarTitleDisplayMode(.automatic)
-            .navigationBarItems(trailing: bluetoothScanner.isPowered ? Text("BT ON").foregroundColor(.green) : Text("BT OFF").foregroundColor(.red))
+            .navigationBarItems(trailing: bluetoothScanner.isPowered ? Text("BT ON").foregroundStyle(.green) : Text("BT OFF").foregroundStyle(.red))
+            .searchable(text: $searchText)
         }
     }
     

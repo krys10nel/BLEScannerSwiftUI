@@ -102,7 +102,7 @@ struct DetailsView: View {
                 Spacer()
             }
             .navigationBarTitle(self.device.connectedPeripheral.deviceName)
-            .navigationBarItems(trailing: self.device.isConnected ? Text("Connected") : Text("Disconnected"))
+            .navigationBarItems(trailing: self.device.isConnected ? Text("Connected").foregroundStyle(.green) : Text("Disconnected").foregroundStyle(.red))
         }
         .navigationBarBackButtonHidden(true)
         .navigationBarItems(leading: Button(action: {
