@@ -96,6 +96,8 @@
 			dependencies = (
 			);
 			name = BLEScanner;
+			packageProductDependencies = (
+			);
 			productName = BLEScanner;
 			productReference = 96F75A032962D9EF00D36D9F /* BLEScanner.app */;
 			productType = "com.apple.product-type.application";
@@ -124,6 +126,8 @@
 				Base,
 			);
 			mainGroup = 96F759FA2962D9EF00D36D9F;
+			packageReferences = (
+			);
 			productRefGroup = 96F75A042962D9EF00D36D9F /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
