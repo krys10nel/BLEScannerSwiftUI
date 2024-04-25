@@ -22,6 +22,7 @@ struct DetailsView: View {
                             VStack {
                                 HStack {
                                     // TODO: change uuid to characteristic name (assuming it exists in firmware)
+                                    // TODO: if statement to replace uuid with actual descriptions instead of trying to find descriptors??
                                     Text("\(service.uuid)")
                                         .frame(minWidth: 111, idealWidth: .infinity, maxWidth: .infinity, alignment: .leading)
                                         .foregroundStyle(.red)
@@ -37,7 +38,7 @@ struct DetailsView: View {
                                             let properties = characteristic.characteristic.properties
                                             if properties.contains(.read) && !properties.contains(.write) {
                                                 VStack {
-                                                    Text("\(characteristic.uuid) : \(characteristic.readValue)")
+                                                    Text("\(characteristic.uuid) : \(self.device.convertHexValueToASCII(hexValue: characteristic.readValue))")
                                                         .frame(idealWidth: .infinity, maxWidth: .infinity, alignment: .leading)
                                                         .foregroundStyle(.gray)
                                                         .font(.caption)
@@ -55,6 +56,7 @@ struct DetailsView: View {
                                             if properties.contains(.write) {
                                                 VStack {
                                                     Spacer()
+                                                    // TODO: if statement to replace uuid with actual descriptions instead of trying to find descriptors??
                                                     Text("\(characteristic.uuid)")
                                                         .frame(idealWidth: .infinity, maxWidth: .infinity, alignment: .leading)
                                                         .foregroundStyle(.white)
