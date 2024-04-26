@@ -30,8 +30,8 @@ struct DetailsView: View {
                                     Spacer()
                                 }
                                 //characteristicView
-                                // TODO: light controls ONLY, as buttons
-                                // TODO: device information etc. are gray captioned
+                                // Info Only Services
+                                // Device information Services etc. are gray captioned
                                 VStack {
                                     ForEach(device.discoveredCharacteristics, id: \.uuid) { characteristic in
                                         if characteristic.service.uuid == service.uuid {
@@ -48,17 +48,17 @@ struct DetailsView: View {
                                         }
                                     }
                                 }
-                                // Buttons only
+                                // Toggle Only Services
                                 HStack {
+                                    Spacer()
                                     ForEach(device.discoveredCharacteristics, id: \.uuid) { characteristic in
                                         if characteristic.service.uuid == service.uuid {
                                             let properties = characteristic.characteristic.properties
                                             if properties.contains(.write) {
                                                 VStack {
                                                     Spacer()
-                                                    // TODO: if statement to replace uuid with actual descriptions instead of trying to find descriptors??
-                                                    Text("\(characteristic.uuid)")
-                                                        .frame(idealWidth: .infinity, maxWidth: .infinity, alignment: .leading)
+                                                    Text("\(characteristic.description)")
+                                                        .frame(idealWidth: .infinity, maxWidth: .infinity, alignment: .center)
                                                         .foregroundStyle(.white)
                                                         .lineLimit(1)
                                                     Spacer()

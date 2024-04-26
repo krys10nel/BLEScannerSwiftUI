@@ -256,8 +256,6 @@ extension BluetoothScanner: CBPeripheralDelegate {
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         guard let value = characteristic.value else { return }
-        print("-------------------------------------------------------------------------------")
-        print("characteristic value: \(String(describing: characteristic.value))")
         // Find the corresponding Characteristic in the array
         if let index = discoveredCharacteristics.firstIndex(where: { $0.uuid == characteristic.uuid }) {
             // Create a new Characteristic instance with updated readValue
@@ -273,9 +271,8 @@ extension BluetoothScanner: CBPeripheralDelegate {
             */
             // Update the array with modified Characteristic
             // discoveredCharacteristics[index] = updatedCharacteristic
-            print("didUpdateValueFor characteristic: \(characteristic.uuid)")
+            print("----------> didUpdateValueFor characteristic: \(characteristic.uuid)")
         }
-        print("-------------------------------------------------------------------------------")
     }
         
     func peripheral(_ peripheral: CBPeripheral, didWriteValueFor characteristic: CBCharacteristic, error: Error?) {
@@ -298,11 +295,14 @@ extension BluetoothScanner: CBPeripheralDelegate {
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor descriptor: CBDescriptor, error: Error?) {
-        if descriptor.uuid.uuidString == CBUUIDCharacteristicUserDescriptionString, 
-            let userDescription = descriptor.value as? String {
+        if descriptor.uuid.uuidString == CBUUIDCharacteristicUserDescriptionString,
+           let userDescription = descriptor.value as? String {
             print("Characteristic \(String(describing: descriptor.characteristic?.uuid.uuidString)) is also known as \(userDescription)")
+            // put descriptor in description value in discoveredCharacteristics
+            if let index = discoveredCharacteristics.firstIndex(where: { $0.uuid.uuidString == descriptor.characteristic?.uuid.uuidString }) {
+                discoveredCharacteristics[index].description = userDescription
+            }
         }
-        print("didUpdateValueFor descriptor: \(descriptor)")
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {
