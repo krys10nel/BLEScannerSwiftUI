@@ -222,51 +222,56 @@ class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
              write(value: writeValue, characteristic: characteristic.characteristic)
          }
     }
+    
+    func displayServiceName(serviceUUID: String) {
+        
+    }
 }
 
 extension BluetoothScanner: CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         guard let services = peripheral.services else { return }
+        print("-------------------------------------------------------------------------------")
         for service in services {
+            // TODO: insert filter of UUIDs to list
             discoveredServices.append(Service(uuid: service.uuid, service: service))
+            print("didDiscoverServices for \(service)\n")
             peripheral.discoverCharacteristics(nil, for: service)
         }
-        
-        print("didDiscoverServices")
-        // print(discoveredServices)
+        print("-------------------------------------------------------------------------------")
     }
     
     func peripheral(_ peripheral: CBPeripheral, didDiscoverCharacteristicsFor service: CBService, error: Error?) {
         guard let characteristics = service.characteristics else { return }
-        
+        print("-------------------------------------------------------------------------------")
+        print("for \(service)\n")
         for characteristic in characteristics {
             discoveredCharacteristics.append(Characteristic(uuid: characteristic.uuid, service: service, characteristic: characteristic, description: "", readValue: ""))
-            print("found characteristic: \(characteristic.uuid) for service: \(characteristic.service!.uuid)")
+            print("-----> found characteristic: \(characteristic)")
             peripheral.readValue(for: characteristic)
             peripheral.discoverDescriptors(for: characteristic)
         }
-        print("didDiscoverCharacteristics")
-        print(discoveredCharacteristics)
+        print("-------------------------------------------------------------------------------")
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor characteristic: CBCharacteristic, error: Error?) {
         guard let value = characteristic.value else { return }
-        
         // Find the corresponding Characteristic in the array
-        if let index = discoveredCharacteristics.firstIndex(where: { $0.uuid.uuidString == characteristic.uuid.uuidString }) {
+        if let index = discoveredCharacteristics.firstIndex(where: { $0.uuid == characteristic.uuid }) {
             // Create a new Characteristic instance with updated readValue
-            var updatedCharacteristic = discoveredCharacteristics[index]
-            // updatedCharacteristic.readValue = value.map { String(format: "%02X", $0) }.joined()
-            let hexValue = value.map { String(format: "%02X", $0) }.joined()
-            
+            // var updatedCharacteristic = discoveredCharacteristics[index]
+            discoveredCharacteristics[index].readValue = value.map { String(format: "%02X", $0) }.joined()
+            // let hexValue = value.map { String(format: "%02X", $0) }.joined()
+            /*
             if value.count > 2 {
-                updatedCharacteristic.readValue = convertHexValueToASCII(hexValue: hexValue)
+                discoveredCharacteristics[index].readValue = convertHexValueToASCII(hexValue: hexValue)
             } else {
-                updatedCharacteristic.readValue = hexValue
+                discoveredCharacteristics[index].readValue = hexValue
             }
-            
+            */
             // Update the array with modified Characteristic
-            discoveredCharacteristics[index] = updatedCharacteristic
+            // discoveredCharacteristics[index] = updatedCharacteristic
+            print("----------> didUpdateValueFor characteristic: \(characteristic.uuid)")
         }
     }
         
@@ -281,23 +286,23 @@ extension BluetoothScanner: CBPeripheralDelegate {
     func peripheral(_ peripheral: CBPeripheral, didDiscoverDescriptorsFor characteristic: CBCharacteristic, error: Error?) {
         guard let descriptors = characteristic.descriptors else { return }
         
-        // Get user description descriptor
-        if let index = descriptors.firstIndex(where: { $0.uuid.uuidString == CBUUIDCharacteristicUserDescriptionString }) {
-            // Read user description for characteristic
-            var updatedDescriptor = discoveredCharacteristics[index]
-            updatedDescriptor.readValue = String(describing: descriptors)
-            
-            discoveredCharacteristics[index] = updatedDescriptor
+        print("didDiscoverDescriptorsFor: \(characteristic.uuid)")
+        if let userDescriptionDescriptor = descriptors.first(where: {
+            return $0.uuid.uuidString == CBUUIDCharacteristicUserDescriptionString
+        }) {
+            peripheral.readValue(for: userDescriptionDescriptor)
         }
-        print("didDiscoverDescriptorsFor: \(characteristic)")
-        print("Descriptors: \(String(describing: characteristic.descriptors))")
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateValueFor descriptor: CBDescriptor, error: Error?) {
-        if descriptor.uuid.uuidString == CBUUIDCharacteristicUserDescriptionString, let userDescription = descriptor.value as? String {
+        if descriptor.uuid.uuidString == CBUUIDCharacteristicUserDescriptionString,
+           let userDescription = descriptor.value as? String {
             print("Characteristic \(String(describing: descriptor.characteristic?.uuid.uuidString)) is also known as \(userDescription)")
+            // put descriptor in description value in discoveredCharacteristics
+            if let index = discoveredCharacteristics.firstIndex(where: { $0.uuid.uuidString == descriptor.characteristic?.uuid.uuidString }) {
+                discoveredCharacteristics[index].description = userDescription
+            }
         }
-        print("didUpdateValueFor: \(descriptor)")
     }
     
     func peripheral(_ peripheral: CBPeripheral, didUpdateNotificationStateFor characteristic: CBCharacteristic, error: Error?) {

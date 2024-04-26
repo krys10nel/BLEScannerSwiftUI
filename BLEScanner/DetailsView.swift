@@ -22,6 +22,7 @@ struct DetailsView: View {
                             VStack {
                                 HStack {
                                     // TODO: change uuid to characteristic name (assuming it exists in firmware)
+                                    // TODO: if statement to replace uuid with actual descriptions instead of trying to find descriptors??
                                     Text("\(service.uuid)")
                                         .frame(minWidth: 111, idealWidth: .infinity, maxWidth: .infinity, alignment: .leading)
                                         .foregroundStyle(.red)
@@ -29,15 +30,15 @@ struct DetailsView: View {
                                     Spacer()
                                 }
                                 //characteristicView
-                                // TODO: light controls ONLY, as buttons
-                                // TODO: device information etc. are gray captioned
+                                // Info Only Services
+                                // Device information Services etc. are gray captioned
                                 VStack {
                                     ForEach(device.discoveredCharacteristics, id: \.uuid) { characteristic in
                                         if characteristic.service.uuid == service.uuid {
                                             let properties = characteristic.characteristic.properties
                                             if properties.contains(.read) && !properties.contains(.write) {
                                                 VStack {
-                                                    Text("\(characteristic.uuid) : \(characteristic.readValue)")
+                                                    Text("\(characteristic.uuid) : \(self.device.convertHexValueToASCII(hexValue: characteristic.readValue))")
                                                         .frame(idealWidth: .infinity, maxWidth: .infinity, alignment: .leading)
                                                         .foregroundStyle(.gray)
                                                         .font(.caption)
@@ -47,16 +48,17 @@ struct DetailsView: View {
                                         }
                                     }
                                 }
-                                // Buttons only
+                                // Toggle Only Services
                                 HStack {
+                                    Spacer()
                                     ForEach(device.discoveredCharacteristics, id: \.uuid) { characteristic in
                                         if characteristic.service.uuid == service.uuid {
                                             let properties = characteristic.characteristic.properties
                                             if properties.contains(.write) {
                                                 VStack {
                                                     Spacer()
-                                                    Text("\(characteristic.uuid)")
-                                                        .frame(idealWidth: .infinity, maxWidth: .infinity, alignment: .leading)
+                                                    Text("\(characteristic.description)")
+                                                        .frame(idealWidth: .infinity, maxWidth: .infinity, alignment: .center)
                                                         .foregroundStyle(.white)
                                                         .lineLimit(1)
                                                     Spacer()
