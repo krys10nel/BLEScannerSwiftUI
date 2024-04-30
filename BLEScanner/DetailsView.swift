@@ -21,9 +21,7 @@ struct DetailsView: View {
                         }) {
                             VStack {
                                 HStack {
-                                    // TODO: change uuid to characteristic name (assuming it exists in firmware)
-                                    // TODO: if statement to replace uuid with actual descriptions instead of trying to find descriptors??
-                                    Text("\(service.uuid)")
+                                    Text("\(service.serviceName)")
                                         .frame(minWidth: 111, idealWidth: .infinity, maxWidth: .infinity, alignment: .leading)
                                         .foregroundStyle(.red)
                                         .lineLimit(1)

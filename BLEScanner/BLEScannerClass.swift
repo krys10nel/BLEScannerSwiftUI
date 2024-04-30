@@ -23,6 +23,7 @@ struct Service: Identifiable {
     
     var uuid: CBUUID
     var service: CBService
+    var serviceName: String
 }
 
 struct Characteristic: Identifiable {
@@ -43,6 +44,24 @@ class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
     @Published var isScanning = false
     @Published var isConnected = false
     @Published var isPowered = false
+    
+    var allowedDevices = [
+        "AVEO-ZTVL",
+        "AVEO-ZTVR",
+        "Aveo Light Display"
+    ]
+    
+    var knownServiceUUIDs: [CBUUID] = [
+        CBUUID(string: "180A"),
+        CBUUID(string: "F0001110-0451-4000-B000-000000000000"),
+        CBUUID(string: "F0001140-0451-4000-B000-000000000000")
+    ]
+    
+    var knownServiceNames = [
+        "180A" : "Device Information",
+        "F0001110-0451-4000-B000-000000000000" : "BOARD LED",
+        "F0001140-0451-4000-B000-000000000000" : "LIGHT 1 CONTROL"
+    ]
 
     private var centralManager: CBCentralManager!
     // Set to store unique peripherals that have been discovered
@@ -96,19 +115,22 @@ class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
             peripheralName = "No Name"
         }
         
-        // If the peripheral is not already in the list
-        if !discoveredPeripheralSet.contains(peripheral) {
-            // Add it to the list and the set
-            discoveredPeripherals.append(Peripheral(id: peripheral.identifier, peripheral: peripheral, deviceName: peripheralName, advertisedData: advertisementData, rssi: RSSI.intValue))
-            discoveredPeripheralSet.insert(peripheral)
-            objectWillChange.send()
-            print(Peripheral(id: peripheral.identifier, peripheral: peripheral, deviceName: peripheralName, advertisedData: advertisementData, rssi: RSSI.intValue))
-            print("\n")
-        } else {
-            // If the peripheral is already in the list, update its advertised data
-            if let index = discoveredPeripherals.firstIndex(where: { $0.peripheral == peripheral }) {
-                discoveredPeripherals[index].advertisedData = advertisementData
+        // Allowed devices check
+        if allowedDevices.contains(peripheralName) {
+            // If the peripheral is not already in the list
+            if !discoveredPeripheralSet.contains(peripheral) {
+                // Add it to the list and the set
+                discoveredPeripherals.append(Peripheral(id: peripheral.identifier, peripheral: peripheral, deviceName: peripheralName, advertisedData: advertisementData, rssi: RSSI.intValue))
+                discoveredPeripheralSet.insert(peripheral)
                 objectWillChange.send()
+                print(Peripheral(id: peripheral.identifier, peripheral: peripheral, deviceName: peripheralName, advertisedData: advertisementData, rssi: RSSI.intValue))
+                print("\n")
+            } else {
+                // If the peripheral is already in the list, update its advertised data
+                if let index = discoveredPeripherals.firstIndex(where: { $0.peripheral == peripheral }) {
+                    discoveredPeripherals[index].advertisedData = advertisementData
+                    objectWillChange.send()
+                }
             }
         }
     }
@@ -119,7 +141,7 @@ class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
         print("Connected peripheral info: \(connectedPeripheral)")
         self.connectedPeripheral.peripheral = peripheral
         peripheral.delegate = self
-        peripheral.discoverServices(nil)
+        peripheral.discoverServices(knownServiceUUIDs)
     }
     
     func centralManager(_ central: CBCentralManager, didFailToConnect peripheral: CBPeripheral, error: Error?) {
@@ -192,10 +214,9 @@ class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
         // }
     }
     
-    /*
     func peripheralIsReady(toSendWriteWithoutResponse peripheral: CBPeripheral) {
-        write(value: someValue, characteristic: someCharacteristic)
-    }*/
+        
+    }
     
     func convertHexValueToASCII(hexValue: String) -> String {
         var hex = hexValue
@@ -222,10 +243,6 @@ class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
              write(value: writeValue, characteristic: characteristic.characteristic)
          }
     }
-    
-    func displayServiceName(serviceUUID: String) {
-        
-    }
 }
 
 extension BluetoothScanner: CBPeripheralDelegate {
@@ -233,10 +250,18 @@ extension BluetoothScanner: CBPeripheralDelegate {
         guard let services = peripheral.services else { return }
         print("-------------------------------------------------------------------------------")
         for service in services {
-            // TODO: insert filter of UUIDs to list
-            discoveredServices.append(Service(uuid: service.uuid, service: service))
-            print("didDiscoverServices for \(service)\n")
-            peripheral.discoverCharacteristics(nil, for: service)
+            let serviceUUIDString = service.uuid.uuidString.uppercased()
+            print("Checking for \(serviceUUIDString) in knownServices")
+            
+            if let serviceName = knownServiceNames[serviceUUIDString] {
+                discoveredServices.append(Service(uuid: service.uuid, service: service, serviceName: serviceName))
+                print("didDiscoverServices for \(service)\n")
+                peripheral.discoverCharacteristics(nil, for: service)
+            } else {
+                discoveredServices.append(Service(uuid: service.uuid, service: service, serviceName: "Unnamed Service"))
+                print("didDiscoverServices for \(service)\n")
+                peripheral.discoverCharacteristics(nil, for: service)
+            }
         }
         print("-------------------------------------------------------------------------------")
     }
