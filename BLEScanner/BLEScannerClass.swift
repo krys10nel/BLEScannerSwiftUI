@@ -36,6 +36,11 @@ struct Characteristic: Identifiable {
     var readValue: String
 }
 
+struct PendingWrite {
+    var value: Data
+    var characteristic: CBCharacteristic
+}
+
 class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
     @Published var discoveredPeripherals = [Peripheral]()
     @Published var discoveredServices =  [Service]()
@@ -62,6 +67,8 @@ class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
         "F0001110-0451-4000-B000-000000000000" : "BOARD LED",
         "F0001140-0451-4000-B000-000000000000" : "LIGHT 1 CONTROL"
     ]
+    
+    var pendingWritesQueue: [PendingWrite] = []
 
     private var centralManager: CBCentralManager!
     // Set to store unique peripherals that have been discovered
@@ -208,14 +215,16 @@ class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
     }
     
     func write(value: Data, characteristic: CBCharacteristic) {
-        // if ((connectedPeripheral?.peripheral.canSendWriteWithoutResponse) != nil) {
-        self.connectedPeripheral?.peripheral.writeValue(value, for: characteristic, type: .withoutResponse)
-        readValue(characteristic: characteristic)
-        // }
+        if ((connectedPeripheral?.peripheral.canSendWriteWithoutResponse) != nil) {
+            self.connectedPeripheral?.peripheral.writeValue(value, for: characteristic, type: .withoutResponse)
+            // readValue(characteristic: characteristic)
+        }
     }
     
-    func peripheralIsReady(toSendWriteWithoutResponse peripheral: CBPeripheral) {
+    func enqueueWrite(value: Data, characteristic: CBCharacteristic) {
+        let pendingWrite = PendingWrite(value: value, characteristic: characteristic)
         
+        pendingWritesQueue.append(pendingWrite)
     }
     
     func convertHexValueToASCII(hexValue: String) -> String {
@@ -235,17 +244,36 @@ class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
     }
     
     func toggleCharacteristic(characteristic: Characteristic) {
+        let writeValue: Data
+        
         if characteristic.readValue == "01" {
-            let writeValue = Data([0x00])
-            write(value: writeValue, characteristic: characteristic.characteristic)
+            writeValue = Data([0x00])
+            // write(value: writeValue, characteristic: characteristic.characteristic)
          } else {
-             let writeValue = Data([0x01])
-             write(value: writeValue, characteristic: characteristic.characteristic)
+             writeValue = Data([0x01])
+             // write(value: writeValue, characteristic: characteristic.characteristic)
          }
+        
+        enqueueWrite(value: writeValue, characteristic: characteristic.characteristic)
     }
 }
 
 extension BluetoothScanner: CBPeripheralDelegate {
+    func peripheralIsReady(toSendWriteWithoutResponse peripheral: CBPeripheral) {
+        guard !pendingWritesQueue.isEmpty else {
+            return
+        }
+        
+        while peripheral.canSendWriteWithoutResponse && !pendingWritesQueue.isEmpty {
+            let pendingWrite = pendingWritesQueue.removeFirst()
+            
+            peripheral.writeValue(pendingWrite.value, for: pendingWrite.characteristic, type: .withoutResponse)
+            
+            // update state of characteristic
+            readValue(characteristic: pendingWrite.characteristic)
+        }
+    }
+    
     func peripheral(_ peripheral: CBPeripheral, didDiscoverServices error: Error?) {
         guard let services = peripheral.services else { return }
         print("-------------------------------------------------------------------------------")
