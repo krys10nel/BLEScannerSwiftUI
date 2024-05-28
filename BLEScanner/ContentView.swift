@@ -33,9 +33,6 @@ struct ContentView: View {
                     VStack {
                         NavigationLink("", destination: DetailsView(device: bluetoothScanner), isActive: $bluetoothScanner.isConnected)
                         
-                        // TODO: add loading screen
-                        // TODO: filter for company lights only
-                        
                         // Text field for entering search text
                         //                TextField("Search",
                         //                          text: $searchText)
