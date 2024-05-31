@@ -49,9 +49,10 @@ struct DetailsView: View {
                         print("Clicked on \(service.uuid)")
                     }) {
                         VStack {
+                            // Service Name
                             HStack {
                                 Text("\(service.serviceName)")
-                                    .frame(minWidth: 111, idealWidth: .infinity, maxWidth: .infinity, alignment: .leading)
+                                    .frame(minWidth: 111, idealWidth: .infinity, maxWidth: .infinity, alignment: .topLeading)
                                     .foregroundStyle(.red)
                                     .lineLimit(1)
                                 Spacer()
@@ -77,33 +78,36 @@ struct DetailsView: View {
                             }
                             // Toggle Only Services
                             HStack {
-                                Spacer()
-                                ForEach(device.discoveredCharacteristics, id: \.uuid) { characteristic in
-                                    if characteristic.service.uuid == service.uuid {
-                                        let properties = characteristic.characteristic.properties
-                                        if properties.contains(.write) {
-                                            VStack {
-                                                Spacer()
-                                                Text("\(characteristic.description)")
-                                                    .frame(idealWidth: .infinity, maxWidth: .infinity, alignment: .center)
-                                                    .foregroundStyle(.white)
-                                                    .lineLimit(1)
-                                                Spacer()
-                                                Button(action: {
-                                                    print("Clicked on \(characteristic)")
-                                                    self.device.toggleCharacteristic(characteristic: characteristic)
-                                                }) {
-                                                    Image(systemName: "power.circle")
-                                                        .font(.system(size: 50))
-                                                        .foregroundStyle(characteristic.readValue == "01" ? Color.green : Color.gray)
+                                ScrollView {
+                                    LazyVGrid(columns: [GridItem(.adaptive(minimum: geo.size.width * 0.25))], alignment: .leading, spacing: 10) {
+                                        ForEach(device.discoveredCharacteristics, id: \.uuid) { characteristic in
+                                            if characteristic.service.uuid == service.uuid {
+                                                let properties = characteristic.characteristic.properties
+                                                if properties.contains(.write) {
+                                                    VStack {
+                                                        Spacer()
+                                                        Text("\(characteristic.description)")
+                                                            .frame(idealWidth: .infinity, maxWidth: .infinity, alignment: .center)
+                                                            .foregroundStyle(.white)
+                                                            .lineLimit(1)
+                                                        Spacer()
+                                                        Button(action: {
+                                                            print("Clicked on \(characteristic)")
+                                                            self.device.toggleCharacteristic(characteristic: characteristic)
+                                                        }) {
+                                                            Image(systemName: "power.circle")
+                                                                .font(.system(size: 50))
+                                                                .foregroundStyle(characteristic.readValue == "01" ? Color.green : Color.gray)
+                                                        }
+                                                    }
+                                                    .frame(width: geo.size.width * 0.25, alignment: .topLeading)
                                                 }
                                             }
-                                            .frame(width: geo.size.width * 0.25, alignment: .topLeading)
                                         }
                                     }
                                 }
-                                Spacer()
                             }
+                            .frame(width: geo.size.width, alignment: .topLeading)
                         }
                         .padding()
                     }
@@ -165,33 +169,40 @@ struct LightGroupView: View {
     var body: some View {
         GeometryReader { geo in
             HStack {
-                Spacer()
-                ForEach(device.discoveredCharacteristics, id: \.uuid) { characteristic in
-                    if characteristic.service.uuid == service.uuid {
-                        let properties = characteristic.characteristic.properties
-                        if properties.contains(.write) {
-                            VStack {
-                                Spacer()
-                                Text("\(characteristic.description)")
-                                    .frame(idealWidth: .infinity, maxWidth: .infinity, alignment: .center)
-                                    .foregroundStyle(.white)
-                                    .lineLimit(1)
-                                Spacer()
-                                Button(action: {
-                                    print("Clicked on \(characteristic)")
-                                    self.device.toggleCharacteristic(characteristic: characteristic)
-                                }) {
-                                    Image(systemName: "power.circle")
-                                        .font(.system(size: 50))
-                                        .foregroundStyle(characteristic.readValue == "01" ? Color.green : Color.gray)
+                ScrollView {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: geo.size.width * 0.25))], alignment: .leading, spacing: 10) {
+                        ForEach(device.discoveredCharacteristics, id: \.uuid) { characteristic in
+                            if characteristic.service.uuid == service.uuid {
+                                let properties = characteristic.characteristic.properties
+                                if properties.contains(.write) {
+                                    HStack {
+                                        // TODO: while characteristic name == previous characteristic name
+                                        let currentLight = 
+                                        VStack {
+                                            Spacer()
+                                            Text("\(characteristic.description)")
+                                                .frame(idealWidth: .infinity, maxWidth: .infinity, alignment: .center)
+                                                .foregroundStyle(.white)
+                                                .lineLimit(1)
+                                            Spacer()
+                                            Button(action: {
+                                                print("Clicked on \(characteristic)")
+                                                self.device.toggleCharacteristic(characteristic: characteristic)
+                                            }) {
+                                                Image(systemName: "power.circle")
+                                                    .font(.system(size: 50))
+                                                    .foregroundStyle(characteristic.readValue == "01" ? Color.green : Color.gray)
+                                            }
+                                        }
+                                        .frame(width: geo.size.width * 0.25, alignment: .topLeading)
+                                    }
                                 }
                             }
-                            .frame(width: geo.size.width * 0.25, alignment: .topLeading)
                         }
                     }
                 }
-                Spacer()
             }
+            .frame(width: geo.size.width, alignment: .topLeading)
         }
     }
 }

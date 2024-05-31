@@ -62,8 +62,8 @@ class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
         CBUUID(string: "180A"),                                     // Device Information
         CBUUID(string: "F0001110-0451-4000-B000-000000000000"),     // Board LED
         CBUUID(string: "F0001140-0451-4000-B000-000000000000"),     // Test lights control
-        CBUUID(string: "37e6a24c-eec0-482e-9244-b92077eba861"),     // Landing Lights
-        CBUUID(string: "3c07f26f-302e-40eb-95c0-f9fdd5a9c51e")      // Anti-Collision Lights
+        CBUUID(string: "37E6A24C-EEC0-482E-9244-B92077EBA861"),     // Landing Lights
+        CBUUID(string: "3C07F26F-302E-40EB-95C0-F9FDD5A9C51E")      // Anti-Collision Lights
         
     ]
     
@@ -71,35 +71,35 @@ class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
         "180A" : "Device Information",
         "F0001110-0451-4000-B000-000000000000" : "BOARD LED",
         "F0001140-0451-4000-B000-000000000000" : "LIGHT CONTROL TEST",
-        "37e6a24c-eec0-482e-9244-b92077eba861" : "Landing Lights",
-        "3c07f26f-302e-40eb-95c0-f9fdd5a9c51e" : "Anti-Collision Lights",
+        "37E6A24C-EEC0-482E-9244-B92077EBA861" : "Landing Lights",
+        "3C07F26F-302E-40EB-95C0-F9FDD5A9C51E" : "Anti-Collision Lights",
     ]
     
     var knownLandingLights = [
-        "fcdd0de6-e65e-497a-9aed-83592f3ec926" : "NUBION",
-        "524e3679-aa69-42d9-92ef-2707239cfbb1" : "NUBION",
-        "29d2e4b1-9860-4443-a9c4-59fdcf00a9f4" : "PACIFICA",
-        "ddf795d5-492c-4157-8cc9-8834e54b78bf" : "HERCULES JP",
-        "d8279c7c-3868-4ed3-b689-980535dbf7c9" : "HERCULES DROP IN",
-        "9222e34b-a5e1-4ae7-b3b7-77ecb89e6646" : "SAMSON JP",
-        "83141066-be5a-428f-8e04-7117661e8156" : "TITAN",
+        "FCDD0DE6-E6E5-497A-9AED-83592F3EC926" : "NUBION",
+        "524E3679-AA69-42D9-92EF-2707239CFBB1" : "NUBION",
+        "29D2E4B1-9860-4443-A9C4-59FDCF00A9F4" : "PACIFICA",
+        "DDF795D5-492C-4157-8CC9-8834E54B78BF" : "HERCULES JP",
+        "D8279C7C-3868-4ED3-B689-980535DBF7C9" : "HERCULES DROP IN",
+        "9222E34B-A5E1-4AE7-B3B7-77ECB89E6646" : "SAMSON JP",
+        "83141066-BE5A-428F-8E04-7117661E8156" : "TITAN",
     ]
     
     var knownAntiCollisionLights = [
-        "7252e959-306e-4979-8736-79c1037fad41" : "ULTRA DAYLITE",
-        "4ee069ce-138a-40aa-8482-c077d040666c" : "ULTRA DAYLITE",
-        "56832316-4984-44de-8125-ff3d1ca00ee8" : "ULTRA EMBEDDED DAYLITE",
-        "7eea0dce-2346-42c4-bb81-7f86143fb586" : "ULTRA EMBEDDED DAYLITE",
-        "6d081faa-0a7b-4d13-933f-5b1571dbcc81" : "ANDROMEDA DAYLITE",
-        "e6009d48-365f-45da-8d57-9ad4d08cc49b" : "ANDROMEDA DAYLITE",
-        "44095ddc-0bfa-4d5a-a465-d7680e988ed2" : "POWERBURST DAYLITE",
-        "ad833097-353f-4dd6-958f-931bee9f04c6" : "POWERBURST DAYLITE",
-        "314a759d-0dc3-4260-aa9c-610b41a6d89e" : "AIRBURST NG DAYLITE",
-        "c1ece9db-3887-479e-836f-8495709d04dd" : "SUPERNOVA FS DAYLITE",
-        "cc7bb8b6-7388-4df6-bef5-8a3ea8d75043" : "RED BARON XP DAYLITE",
-        "8e0b1889-e76a-473f-86e1-f89a528a252c" : "RED BARON NXT",
-        "b111c15b-2777-419b-bc3a-cf40736cc6b9" : "POSISTROBE DAYLITE",
-        "5478e018-6ba0-43ac-aa4e-6dd99f6eb3d3" : "POSISTROBE DAYLITE",
+        "7252E959-306E-4979-8736-79C1037FAD41" : "ULTRA DAYLITE",
+        "4EE069CE-138A-40AA-8482-C077D040666C" : "ULTRA DAYLITE",
+        "56832316-4984-44DE-8125-FF3D1CA00EE8" : "ULTRA EMBEDDED DAYLITE",
+        "7EEA0DCE-2346-42C4-BB81-7F86143FB586" : "ULTRA EMBEDDED DAYLITE",
+        "6D081FAA-0A7B-4D13-933F-5B1571DBCC81" : "ANDROMEDA DAYLITE",
+        "E6009D48-365F-45DA-8D57-9AD4D08CC49B" : "ANDROMEDA DAYLITE",
+        "44095DDC-0BFA-4D5A-A465-D7680E988ED2" : "POWERBURST DAYLITE",
+        "AD833097-353F-4DD6-958F-931BEE9F04C6" : "POWERBURST DAYLITE",
+        "314A759D-0DC3-4260-AA9C-610B41A6D89E" : "AIRBURST NG DAYLITE",
+        "C1ECE9DB-3887-479E-836F-8495709D04DD" : "SUPERNOVA FS DAYLITE",
+        "CC7BB8B6-7388-4DF6-BEF5-8A3EA8D75043" : "RED BARON XP DAYLITE",
+        "8E0B1889-E76A-473F-86E1-F89A528A252C" : "RED BARON NXT",
+        "B111C15B-2777-419B-BC3A-CF40736CC6B9" : "POSISTROBE DAYLITE",
+        "5478E018-6BA0-43AC-AA4E-6DD99F6EB3D3" : "POSISTROBE DAYLITE",
     ]
 
     private var centralManager: CBCentralManager!
