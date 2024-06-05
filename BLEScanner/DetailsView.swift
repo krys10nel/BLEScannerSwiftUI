@@ -140,56 +140,147 @@ struct DetailsView: View {
     
     private var aveoLightDisplayDevice: some View {
         GeometryReader { geo in
-            VStack {
-                if let deviceInformationService = device.discoveredServices.first(where: { device.knownServiceNames[$0.uuid.uuidString] == "Device Information"}) {
-                    /*
-                    VStack(alignment: .leading) {
-                        Text("Device Information")
-                            .frame(minWidth: 111, idealWidth: .infinity, maxWidth: .infinity, alignment: .topLeading)
-                            .foregroundStyle(.red)
-                        ReadOnlyGroupView(device: device, service: deviceInformationService)
+            if #available(iOS 16.0, *) {
+                List {
+                    if let deviceInformationService = device.discoveredServices.first(where: { device.knownServiceNames[$0.uuid.uuidString] == "Device Information"}) {
+                        DisclosureGroup {
+                            VStack(alignment: .leading) {
+                                ReadOnlyGroupView(device: device, service: deviceInformationService)
+                            }
+                            .padding()
+                        } label: {
+                            HStack {
+                                Text("Device Information")
+                                    .foregroundStyle(.red)
+                            }
+                        }
+                        .tint(.red)
                     }
-                    .padding()
-                    */
-                    DisclosureGroup {
-                        VStack(alignment: .leading) {
-                            ReadOnlyGroupView(device: device, service: deviceInformationService)
+                    
+                    if let landingLightsService = device.discoveredServices.first(where: {device.knownServiceNames[$0.uuid.uuidString] == "Landing Lights"}) {
+                        /*
+                         VStack(alignment: .leading) {
+                            Text("Landing Lights")
+                                .frame(minWidth: 111, idealWidth: .infinity, maxWidth: .infinity, alignment: .topLeading)
+                                .foregroundStyle(.red)
+                                .lineLimit(1)
+                            LightGroupView(device: device, service: landingLightsService, proxy: geo)
                         }
                         .padding()
-                    } label: {
-                        HStack {
-                            Text("Device Information")
+                         */
+                        DisclosureGroup {
+                            VStack(alignment: .leading) {
+                                LightGroupView(device: device, service: landingLightsService, proxy: geo)
+                            }
+                        } label: {
+                            HStack {
+                                Text("Landing Lights")
+                                    .foregroundStyle(.red)
+                            }
+                        }
+                        .tint(.red)
+                    }
+                    
+                    if let antiCollisionLightsService = device.discoveredServices.first(where: {device.knownServiceNames[$0.uuid.uuidString] == "Anti-Collision Lights"}) {
+                        /*
+                         VStack(alignment: .leading) {
+                            Text("Anti-Collision Lights")
+                                .frame(minWidth: 111, idealWidth: .infinity, maxWidth: .infinity, alignment: .topLeading)
                                 .foregroundStyle(.red)
+                                .lineLimit(1)
+                            LightGroupView(device: device, service: antiCollisionLightsService, proxy: geo)
+                        }
+                        .padding()
+                         */
+                        DisclosureGroup {
+                            VStack(alignment: .leading) {
+                                LightGroupView(device: device, service: antiCollisionLightsService, proxy: geo)
+                            }
+                        } label: {
+                            HStack {
+                                Text("Anti-Collision Lights")
+                                    .foregroundStyle(.red)
+                            }
+                        }
+                        .tint(.red)
+                    }
+                }
+                .listStyle(.insetGrouped)
+                .disclosureGroupStyle(LightDisclosureStyle())
+                .navigationBarTitle(self.device.connectedPeripheral.deviceName)
+                .navigationBarItems(trailing: self.device.isConnected ? Text("Connected").foregroundStyle(.green) : Text("Disconnected").foregroundStyle(.red))
+            } else {
+                // Fallback on earlier versions
+                GeometryReader { geo in
+                    VStack {
+                        if let deviceInformationService = device.discoveredServices.first(where: { device.knownServiceNames[$0.uuid.uuidString] == "Device Information"}) {
+                            DisclosureGroup {
+                                VStack(alignment: .leading) {
+                                    ReadOnlyGroupView(device: device, service: deviceInformationService)
+                                }
+                            } label: {
+                                HStack {
+                                    Text("Device Information")
+                                        .foregroundStyle(.red)
+                                }
+                            }
+                            .tint(.red)
+                        }
+                        
+                        if let landingLightsService = device.discoveredServices.first(where: {device.knownServiceNames[$0.uuid.uuidString] == "Landing Lights"}) {
+                            /*
+                             VStack(alignment: .leading) {
+                                Text("Landing Lights")
+                                    .frame(minWidth: 111, idealWidth: .infinity, maxWidth: .infinity, alignment: .topLeading)
+                                    .foregroundStyle(.red)
+                                    .lineLimit(1)
+                                LightGroupView(device: device, service: landingLightsService, proxy: geo)
+                            }
+                            .padding()
+                             */
+                            DisclosureGroup {
+                                VStack(alignment: .leading) {
+                                    LightGroupView(device: device, service: landingLightsService, proxy: geo)
+                                }
+                            } label: {
+                                HStack {
+                                    Text("Landing Lights")
+                                        .foregroundStyle(.red)
+                                }
+                            }
+                            .tint(.red)
+                        }
+                        
+                        if let antiCollisionLightsService = device.discoveredServices.first(where: {device.knownServiceNames[$0.uuid.uuidString] == "Anti-Collision Lights"}) {
+                            /*
+                             VStack(alignment: .leading) {
+                                Text("Anti-Collision Lights")
+                                    .frame(minWidth: 111, idealWidth: .infinity, maxWidth: .infinity, alignment: .topLeading)
+                                    .foregroundStyle(.red)
+                                    .lineLimit(1)
+                                LightGroupView(device: device, service: antiCollisionLightsService, proxy: geo)
+                            }
+                            .padding()
+                             */
+                            DisclosureGroup {
+                                VStack(alignment: .leading) {
+                                    LightGroupView(device: device, service: antiCollisionLightsService, proxy: geo)
+                                }
+                            } label: {
+                                HStack {
+                                    Text("Anti-Collision Lights")
+                                        .foregroundStyle(.red)
+                                }
+                            }
+                            .tint(.red)
                         }
                     }
-                    .tint(.red)
-                }
-                
-                if let landingLightsService = device.discoveredServices.first(where: {device.knownServiceNames[$0.uuid.uuidString] == "Landing Lights"}) {
-                    VStack(alignment: .leading) {
-                        Text("Landing Lights")
-                            .frame(minWidth: 111, idealWidth: .infinity, maxWidth: .infinity, alignment: .topLeading)
-                            .foregroundStyle(.red)
-                            .lineLimit(1)
-                        LightGroupView(device: device, service: landingLightsService, proxy: geo)
-                    }
-                    .padding()
-                }
-                
-                if let antiCollisionLightsService = device.discoveredServices.first(where: {device.knownServiceNames[$0.uuid.uuidString] == "Anti-Collision Lights"}) {
-                    VStack(alignment: .leading) {
-                        Text("Anti-Collision Lights")
-                            .frame(minWidth: 111, idealWidth: .infinity, maxWidth: .infinity, alignment: .topLeading)
-                            .foregroundStyle(.red)
-                            .lineLimit(1)
-                        LightGroupView(device: device, service: antiCollisionLightsService, proxy: geo)
-                    }
-                    .padding()
+                    .navigationBarTitle(self.device.connectedPeripheral.deviceName)
+                    .navigationBarItems(trailing: self.device.isConnected ? Text("Connected").foregroundStyle(.green) : Text("Disconnected").foregroundStyle(.red))
                 }
             }
-            .navigationBarTitle(self.device.connectedPeripheral.deviceName)
-            .navigationBarItems(trailing: self.device.isConnected ? Text("Connected").foregroundStyle(.green) : Text("Disconnected").foregroundStyle(.red))
         }
+        
     }
     
     private var aveoZipTipDevice: some View {
@@ -238,7 +329,7 @@ struct LightGroupView: View {
     
     var body: some View {
         HStack {
-            ScrollView {
+            //ScrollView {
                 LazyVGrid(columns: [GridItem(.adaptive(minimum: proxy.size.width * 0.25))], alignment: .leading, spacing: 5) {
                     ForEach(device.discoveredCharacteristics, id: \.uuid) { characteristic in
                         if characteristic.service.uuid == service.uuid {
@@ -268,6 +359,7 @@ struct LightGroupView: View {
                                                 .font(.system(size: 50))
                                                 .foregroundStyle(characteristic.readValue == "01" ? Color.green : Color.gray)
                                         }
+                                        .buttonStyle(.bordered)
                                         Spacer()
                                     }
                                     .frame(width: proxy.size.width * 0.25, alignment: .topLeading)
@@ -276,8 +368,34 @@ struct LightGroupView: View {
                         }
                     }
                 }
+            //}
+            //.frame(width: proxy.size.width, alignment: .topLeading)
+        }
+    }
+}
+
+@available(iOS 16.0, *)
+struct LightDisclosureStyle: DisclosureGroupStyle {
+    
+    // TODO: when the configuration is expanded, the whole area is a button. Fix so only text area is a button for collapsing
+    func makeBody(configuration: Configuration) -> some View {
+        VStack {
+            Button {
+                configuration.isExpanded.toggle()
+            } label: {
+                HStack(alignment: .firstTextBaseline) {
+                    configuration.label.padding(.leading, 0)
+                    Image(systemName: configuration.isExpanded ? "chevron.down" : "chevron.right")
+                        .foregroundStyle(.red)
+                        .font(.body)
+                        .frame(maxWidth: .infinity, alignment: .trailing)
+                        .animation(nil, value: configuration.isExpanded)
+                }
+                .contentShape(Rectangle())
             }
-            .frame(width: proxy.size.width, alignment: .topLeading)
+            if configuration.isExpanded {
+                configuration.content.padding(.leading, 0)
+            }
         }
     }
 }
