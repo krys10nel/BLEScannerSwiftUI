@@ -32,6 +32,7 @@ struct Characteristic: Identifiable {
     var uuid: CBUUID
     var service: CBService
     var characteristic: CBCharacteristic
+    var characteristicName: String
     var description: String
     var readValue: String
 }
@@ -80,7 +81,7 @@ class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
         "524E3679-AA69-42D9-92EF-2707239CFBB1" : "NUBION",
         "29D2E4B1-9860-4443-A9C4-59FDCF00A9F4" : "PACIFICA",
         "DDF795D5-492C-4157-8CC9-8834E54B78BF" : "HERCULES JP",
-        "D8279C7C-3868-4ED3-B689-980535DBF7C9" : "HERCULES DROP IN",
+        "D8279C7C-3868-4ED3-B689-980535DBF7C9" : "HERCULES DI",
         "9222E34B-A5E1-4AE7-B3B7-77ECB89E6646" : "SAMSON JP",
         "83141066-BE5A-428F-8E04-7117661E8156" : "TITAN",
     ]
@@ -88,18 +89,18 @@ class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
     var knownAntiCollisionLights = [
         "7252E959-306E-4979-8736-79C1037FAD41" : "ULTRA DAYLITE",
         "4EE069CE-138A-40AA-8482-C077D040666C" : "ULTRA DAYLITE",
-        "56832316-4984-44DE-8125-FF3D1CA00EE8" : "ULTRA EMBEDDED DAYLITE",
-        "7EEA0DCE-2346-42C4-BB81-7F86143FB586" : "ULTRA EMBEDDED DAYLITE",
-        "6D081FAA-0A7B-4D13-933F-5B1571DBCC81" : "ANDROMEDA DAYLITE",
-        "E6009D48-365F-45DA-8D57-9AD4D08CC49B" : "ANDROMEDA DAYLITE",
-        "44095DDC-0BFA-4D5A-A465-D7680E988ED2" : "POWERBURST DAYLITE",
-        "AD833097-353F-4DD6-958F-931BEE9F04C6" : "POWERBURST DAYLITE",
-        "314A759D-0DC3-4260-AA9C-610B41A6D89E" : "AIRBURST NG DAYLITE",
-        "C1ECE9DB-3887-479E-836F-8495709D04DD" : "SUPERNOVA FS DAYLITE",
-        "CC7BB8B6-7388-4DF6-BEF5-8A3EA8D75043" : "RED BARON XP DAYLITE",
+        "56832316-4984-44DE-8125-FF3D1CA00EE8" : "ULTRA EMB",
+        "7EEA0DCE-2346-42C4-BB81-7F86143FB586" : "ULTRA EMB",
+        "6D081FAA-0A7B-4D13-933F-5B1571DBCC81" : "ANDROMEDA",
+        "E6009D48-365F-45DA-8D57-9AD4D08CC49B" : "ANDROMEDA",
+        "44095DDC-0BFA-4D5A-A465-D7680E988ED2" : "POWERBURST",
+        "AD833097-353F-4DD6-958F-931BEE9F04C6" : "POWERBURST",
+        "314A759D-0DC3-4260-AA9C-610B41A6D89E" : "AIRBURST NG",
+        "C1ECE9DB-3887-479E-836F-8495709D04DD" : "SUPERNOVA FS",
+        "CC7BB8B6-7388-4DF6-BEF5-8A3EA8D75043" : "RED BARON XP",
         "8E0B1889-E76A-473F-86E1-F89A528A252C" : "RED BARON NXT",
-        "B111C15B-2777-419B-BC3A-CF40736CC6B9" : "POSISTROBE DAYLITE",
-        "5478E018-6BA0-43AC-AA4E-6DD99F6EB3D3" : "POSISTROBE DAYLITE",
+        "B111C15B-2777-419B-BC3A-CF40736CC6B9" : "POSISTROBE",
+        "5478E018-6BA0-43AC-AA4E-6DD99F6EB3D3" : "POSISTROBE",
     ]
 
     private var centralManager: CBCentralManager!
@@ -334,7 +335,14 @@ extension BluetoothScanner: CBPeripheralDelegate {
         print("-------------------------------------------------------------------------------")
         print("for \(service)\n")
         for characteristic in characteristics {
-            discoveredCharacteristics.append(Characteristic(uuid: characteristic.uuid, service: service, characteristic: characteristic, description: "", readValue: ""))
+            let characteristicUUIDString = characteristic.uuid.uuidString.uppercased()
+            print("Checking for \(characteristicUUIDString) in dictionary")
+            
+            if let characteristicName = knownLandingLights[characteristicUUIDString] ?? knownAntiCollisionLights[characteristicUUIDString] {
+                discoveredCharacteristics.append(Characteristic(uuid: characteristic.uuid, service: service, characteristic: characteristic, characteristicName: characteristicName, description: "", readValue: ""))
+            } else {
+                discoveredCharacteristics.append(Characteristic(uuid: characteristic.uuid, service: service, characteristic: characteristic, characteristicName: "Unnamed Characteristic", description: "", readValue: ""))
+            }
             print("-----> found characteristic: \(characteristic)")
             peripheral.readValue(for: characteristic)
             peripheral.discoverDescriptors(for: characteristic)

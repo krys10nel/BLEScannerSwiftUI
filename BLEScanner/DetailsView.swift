@@ -15,8 +15,8 @@ struct DetailsView: View {
         ZStack {
             if let peripheral = device.connectedPeripheral {
                 switch peripheral.deviceName {
-                case "Aveo Light Display":
-                    generalDevice   // TODO: change into aveoLightDisplayDevice
+                case "LIGHT-DISPLAY":
+                    aveoLightDisplayDevice
                 case "AVEO-ZTVL":
                     aveoZipTipDevice
                 case "AVEO-ZTVR":
@@ -139,23 +139,93 @@ struct DetailsView: View {
     }
     
     private var aveoLightDisplayDevice: some View {
-        VStack {
-            if let landingLightsService = device.discoveredServices.first(where: {device.knownServiceNames[$0.uuid.uuidString] == "Landing Lights"}) {
-                LightGroupView(device: device, service: landingLightsService, usingLightsDict: device.knownLandingLights)
-            } else if let antiCollisionLightsService = device.discoveredServices.first(where: {device.knownServiceNames[$0.uuid.uuidString] == "Anti-Collision Lights"}) {
-                LightGroupView(device: device, service: antiCollisionLightsService, usingLightsDict: device.knownAntiCollisionLights)
-            } else {
-                Text("Landing Lights service not available")
+        GeometryReader { geo in
+            VStack {
+                if let deviceInformationService = device.discoveredServices.first(where: { device.knownServiceNames[$0.uuid.uuidString] == "Device Information"}) {
+                    /*
+                    VStack(alignment: .leading) {
+                        Text("Device Information")
+                            .frame(minWidth: 111, idealWidth: .infinity, maxWidth: .infinity, alignment: .topLeading)
+                            .foregroundStyle(.red)
+                        ReadOnlyGroupView(device: device, service: deviceInformationService)
+                    }
+                    .padding()
+                    */
+                    DisclosureGroup {
+                        VStack(alignment: .leading) {
+                            ReadOnlyGroupView(device: device, service: deviceInformationService)
+                        }
+                        .padding()
+                    } label: {
+                        HStack {
+                            Text("Device Information")
+                                .foregroundStyle(.red)
+                        }
+                    }
+                    .tint(.red)
+                }
+                
+                if let landingLightsService = device.discoveredServices.first(where: {device.knownServiceNames[$0.uuid.uuidString] == "Landing Lights"}) {
+                    VStack(alignment: .leading) {
+                        Text("Landing Lights")
+                            .frame(minWidth: 111, idealWidth: .infinity, maxWidth: .infinity, alignment: .topLeading)
+                            .foregroundStyle(.red)
+                            .lineLimit(1)
+                        LightGroupView(device: device, service: landingLightsService, proxy: geo)
+                    }
+                    .padding()
+                }
+                
+                if let antiCollisionLightsService = device.discoveredServices.first(where: {device.knownServiceNames[$0.uuid.uuidString] == "Anti-Collision Lights"}) {
+                    VStack(alignment: .leading) {
+                        Text("Anti-Collision Lights")
+                            .frame(minWidth: 111, idealWidth: .infinity, maxWidth: .infinity, alignment: .topLeading)
+                            .foregroundStyle(.red)
+                            .lineLimit(1)
+                        LightGroupView(device: device, service: antiCollisionLightsService, proxy: geo)
+                    }
+                    .padding()
+                }
             }
+            .navigationBarTitle(self.device.connectedPeripheral.deviceName)
+            .navigationBarItems(trailing: self.device.isConnected ? Text("Connected").foregroundStyle(.green) : Text("Disconnected").foregroundStyle(.red))
         }
     }
     
     private var aveoZipTipDevice: some View {
+        GeometryReader { geo in
+            VStack {
+                if let aveoZipTip = device.discoveredServices.first(where: {device.knownServiceNames[$0.uuid.uuidString] == "AVEO-ZTVL"}) {
+                    LightGroupView(device: device, service: aveoZipTip, proxy: geo)
+                } else {
+                    Text("Landing Lights service not available")
+                }
+            }
+        }
+    }
+}
+
+struct ReadOnlyGroupView: View {
+    @ObservedObject var device: BluetoothScanner
+    var service: Service
+    
+    var body: some View {
+        // Info Only Services
+        // Device information Services etc. are gray captioned
         VStack {
-            if let aveoZipTip = device.discoveredServices.first(where: {device.knownServiceNames[$0.uuid.uuidString] == "AVEO-ZTVL"}) {
-                LightGroupView(device: device, service: aveoZipTip, usingLightsDict: device.knownAntiCollisionLights)
-            } else {
-                Text("Landing Lights service not available")
+            ForEach(device.discoveredCharacteristics, id: \.uuid) { characteristic in
+                if characteristic.service.uuid == service.uuid {
+                    let properties = characteristic.characteristic.properties
+                    if properties.contains(.read) && !properties.contains(.write) {
+                        VStack {
+                            Text("\(characteristic.uuid) : \(self.device.convertHexValueToASCII(hexValue: characteristic.readValue))")
+                                .frame(idealWidth: .infinity, maxWidth: .infinity, alignment: .leading)
+                                .foregroundStyle(.gray)
+                                .font(.caption)
+                                .lineLimit(2)
+                        }
+                    }
+                }
             }
         }
     }
@@ -164,24 +234,30 @@ struct DetailsView: View {
 struct LightGroupView: View {
     @ObservedObject var device : BluetoothScanner
     var service: Service
-    var usingLightsDict: [String : String]
+    var proxy: GeometryProxy
     
     var body: some View {
-        GeometryReader { geo in
+        //GeometryReader { geo in
             HStack {
                 ScrollView {
-                    LazyVGrid(columns: [GridItem(.adaptive(minimum: geo.size.width * 0.25))], alignment: .leading, spacing: 10) {
+                    LazyVGrid(columns: [GridItem(.adaptive(minimum: proxy.size.width * 0.25))], alignment: .leading, spacing: 5) {
                         ForEach(device.discoveredCharacteristics, id: \.uuid) { characteristic in
                             if characteristic.service.uuid == service.uuid {
                                 let properties = characteristic.characteristic.properties
                                 if properties.contains(.write) {
                                     HStack {
                                         // TODO: while characteristic name == previous characteristic name
-                                        let currentLight = 
                                         VStack {
                                             Spacer()
+                                            Text("\(characteristic.characteristicName)")
+                                                .frame(idealWidth: .infinity, maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                                                .font(.caption)
+                                                .foregroundStyle(.gray)
+                                                .multilineTextAlignment(.center)
+                                                .lineLimit(2)
+                                            Spacer()
                                             Text("\(characteristic.description)")
-                                                .frame(idealWidth: .infinity, maxWidth: .infinity, alignment: .center)
+                                                .frame(idealWidth: .infinity, maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
                                                 .foregroundStyle(.white)
                                                 .lineLimit(1)
                                             Spacer()
@@ -193,17 +269,18 @@ struct LightGroupView: View {
                                                     .font(.system(size: 50))
                                                     .foregroundStyle(characteristic.readValue == "01" ? Color.green : Color.gray)
                                             }
+                                            Spacer()
                                         }
-                                        .frame(width: geo.size.width * 0.25, alignment: .topLeading)
+                                        .frame(width: proxy.size.width * 0.25, alignment: .topLeading)
                                     }
                                 }
                             }
                         }
                     }
                 }
+                .frame(width: proxy.size.width, alignment: .topLeading)
             }
-            .frame(width: geo.size.width, alignment: .topLeading)
-        }
+        //}
     }
 }
 
