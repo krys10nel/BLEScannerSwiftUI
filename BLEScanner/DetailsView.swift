@@ -140,56 +140,107 @@ struct DetailsView: View {
     
     private var aveoLightDisplayDevice: some View {
         GeometryReader { geo in
-            VStack {
-                if let deviceInformationService = device.discoveredServices.first(where: { device.knownServiceNames[$0.uuid.uuidString] == "Device Information"}) {
-                    /*
-                    VStack(alignment: .leading) {
-                        Text("Device Information")
-                            .frame(minWidth: 111, idealWidth: .infinity, maxWidth: .infinity, alignment: .topLeading)
-                            .foregroundStyle(.red)
-                        ReadOnlyGroupView(device: device, service: deviceInformationService)
-                    }
-                    .padding()
-                    */
-                    DisclosureGroup {
-                        VStack(alignment: .leading) {
-                            ReadOnlyGroupView(device: device, service: deviceInformationService)
+            if #available(iOS 16.0, *) {
+                List {
+                    if let deviceInformationService = device.discoveredServices.first(where: { device.knownServiceNames[$0.uuid.uuidString] == "Device Information"}) {
+                        DisclosureGroup {
+                            VStack(alignment: .leading) {
+                                ReadOnlyGroupView(device: device, service: deviceInformationService)
+                            }
+                            .padding()
+                        } label: {
+                            HStack {
+                                Text("Device Information")
+                                    .foregroundStyle(.red)
+                            }
                         }
-                        .padding()
-                    } label: {
-                        HStack {
-                            Text("Device Information")
-                                .foregroundStyle(.red)
+                        .tint(.red)
+                    }
+                    
+                    if let landingLightsService = device.discoveredServices.first(where: {device.knownServiceNames[$0.uuid.uuidString] == "Landing Lights"}) {
+                        DisclosureGroup {
+                            VStack(alignment: .leading) {
+                                LightGroupView(device: device, service: landingLightsService, proxy: geo)
+                            }
+                        } label: {
+                            HStack {
+                                Text("Landing Lights")
+                                    .foregroundStyle(.red)
+                            }
+                        }
+                        .tint(.red)
+                    }
+                    
+                    if let antiCollisionLightsService = device.discoveredServices.first(where: {device.knownServiceNames[$0.uuid.uuidString] == "Anti-Collision Lights"}) {
+                        DisclosureGroup {
+                            VStack(alignment: .leading) {
+                                LightGroupView(device: device, service: antiCollisionLightsService, proxy: geo)
+                            }
+                        } label: {
+                            HStack {
+                                Text("Anti-Collision Lights")
+                                    .foregroundStyle(.red)
+                            }
+                        }
+                        .tint(.red)
+                    }
+                }
+                .listStyle(.insetGrouped)
+                .disclosureGroupStyle(LightDisclosureStyle())
+                .navigationBarTitle(self.device.connectedPeripheral.deviceName)
+                .navigationBarItems(trailing: self.device.isConnected ? Text("Connected").foregroundStyle(.green) : Text("Disconnected").foregroundStyle(.red))
+            } else {
+                // Fallback on earlier versions
+                GeometryReader { geo in
+                    VStack {
+                        if let deviceInformationService = device.discoveredServices.first(where: { device.knownServiceNames[$0.uuid.uuidString] == "Device Information"}) {
+                            DisclosureGroup {
+                                VStack(alignment: .leading) {
+                                    ReadOnlyGroupView(device: device, service: deviceInformationService)
+                                }
+                            } label: {
+                                HStack {
+                                    Text("Device Information")
+                                        .foregroundStyle(.red)
+                                }
+                            }
+                            .tint(.red)
+                        }
+                        
+                        if let landingLightsService = device.discoveredServices.first(where: {device.knownServiceNames[$0.uuid.uuidString] == "Landing Lights"}) {
+                            DisclosureGroup {
+                                VStack(alignment: .leading) {
+                                    LightGroupView(device: device, service: landingLightsService, proxy: geo)
+                                }
+                            } label: {
+                                HStack {
+                                    Text("Landing Lights")
+                                        .foregroundStyle(.red)
+                                }
+                            }
+                            .tint(.red)
+                        }
+                        
+                        if let antiCollisionLightsService = device.discoveredServices.first(where: {device.knownServiceNames[$0.uuid.uuidString] == "Anti-Collision Lights"}) {
+                            DisclosureGroup {
+                                VStack(alignment: .leading) {
+                                    LightGroupView(device: device, service: antiCollisionLightsService, proxy: geo)
+                                }
+                            } label: {
+                                HStack {
+                                    Text("Anti-Collision Lights")
+                                        .foregroundStyle(.red)
+                                }
+                            }
+                            .tint(.red)
                         }
                     }
-                    .tint(.red)
-                }
-                
-                if let landingLightsService = device.discoveredServices.first(where: {device.knownServiceNames[$0.uuid.uuidString] == "Landing Lights"}) {
-                    VStack(alignment: .leading) {
-                        Text("Landing Lights")
-                            .frame(minWidth: 111, idealWidth: .infinity, maxWidth: .infinity, alignment: .topLeading)
-                            .foregroundStyle(.red)
-                            .lineLimit(1)
-                        LightGroupView(device: device, service: landingLightsService, proxy: geo)
-                    }
-                    .padding()
-                }
-                
-                if let antiCollisionLightsService = device.discoveredServices.first(where: {device.knownServiceNames[$0.uuid.uuidString] == "Anti-Collision Lights"}) {
-                    VStack(alignment: .leading) {
-                        Text("Anti-Collision Lights")
-                            .frame(minWidth: 111, idealWidth: .infinity, maxWidth: .infinity, alignment: .topLeading)
-                            .foregroundStyle(.red)
-                            .lineLimit(1)
-                        LightGroupView(device: device, service: antiCollisionLightsService, proxy: geo)
-                    }
-                    .padding()
+                    .navigationBarTitle(self.device.connectedPeripheral.deviceName)
+                    .navigationBarItems(trailing: self.device.isConnected ? Text("Connected").foregroundStyle(.green) : Text("Disconnected").foregroundStyle(.red))
                 }
             }
-            .navigationBarTitle(self.device.connectedPeripheral.deviceName)
-            .navigationBarItems(trailing: self.device.isConnected ? Text("Connected").foregroundStyle(.green) : Text("Disconnected").foregroundStyle(.red))
         }
+        
     }
     
     private var aveoZipTipDevice: some View {
@@ -238,46 +289,73 @@ struct LightGroupView: View {
     
     var body: some View {
         HStack {
-            ScrollView {
-                LazyVGrid(columns: [GridItem(.adaptive(minimum: proxy.size.width * 0.25))], alignment: .leading, spacing: 5) {
-                    ForEach(device.discoveredCharacteristics, id: \.uuid) { characteristic in
-                        if characteristic.service.uuid == service.uuid {
-                            let properties = characteristic.characteristic.properties
-                            if properties.contains(.write) {
-                                HStack {
-                                    // TODO: while characteristic name == previous characteristic name
-                                    VStack {
-                                        Spacer()
-                                        Text("\(characteristic.characteristicName)")
-                                            .frame(idealWidth: .infinity, maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                                            .font(.caption)
-                                            .foregroundStyle(.gray)
-                                            .multilineTextAlignment(.center)
-                                            .lineLimit(2)
-                                        Spacer()
-                                        Text("\(characteristic.description)")
-                                            .frame(idealWidth: .infinity, maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
-                                            .foregroundStyle(.white)
-                                            .lineLimit(1)
-                                        Spacer()
-                                        Button(action: {
-                                            print("Clicked on \(characteristic)")
-                                            self.device.toggleCharacteristic(characteristic: characteristic)
-                                        }) {
-                                            Image(systemName: "power.circle")
-                                                .font(.system(size: 50))
-                                                .foregroundStyle(characteristic.readValue == "01" ? Color.green : Color.gray)
-                                        }
-                                        Spacer()
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: proxy.size.width * 0.25))], alignment: .leading, spacing: 5) {
+                ForEach(device.discoveredCharacteristics, id: \.uuid) { characteristic in
+                    if characteristic.service.uuid == service.uuid {
+                        let properties = characteristic.characteristic.properties
+                        if properties.contains(.write) {
+                            HStack {
+                                VStack {
+                                    Spacer()
+                                    Text("\(characteristic.characteristicName)")
+                                        .frame(idealWidth: .infinity, maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                                        .font(.caption)
+                                        .foregroundStyle(.gray)
+                                        .multilineTextAlignment(.center)
+                                        .lineLimit(2)
+                                    Spacer()
+                                    Text("\(characteristic.description)")
+                                        .frame(idealWidth: .infinity, maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+                                        .foregroundStyle(.white)
+                                        .lineLimit(1)
+                                    Spacer()
+                                    Button(action: {
+                                        print("Clicked on \(characteristic)")
+                                        self.device.toggleCharacteristic(characteristic: characteristic)
+                                        
+                                        // TODO: while characteristic name == previous characteristic name
+                                    }) {
+                                        Image(systemName: "power.circle")
+                                            .font(.system(size: 50))
+                                            .foregroundStyle(characteristic.readValue == "01" ? Color.green : Color.gray)
                                     }
-                                    .frame(width: proxy.size.width * 0.25, alignment: .topLeading)
+                                    .buttonStyle(.bordered)
+                                    Spacer()
                                 }
+                                .frame(width: proxy.size.width * 0.25, alignment: .topLeading)
                             }
                         }
                     }
                 }
             }
-            .frame(width: proxy.size.width, alignment: .topLeading)
+        }
+    }
+}
+
+@available(iOS 16.0, *)
+struct LightDisclosureStyle: DisclosureGroupStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        VStack {
+            HStack(alignment: .firstTextBaseline) {
+                configuration.label
+                    .padding([.top, .bottom], 10)
+                    .lineLimit(1)
+                    .layoutPriority(1)
+                Image(systemName: configuration.isExpanded ? "chevron.down" : "chevron.right")
+                    .foregroundStyle(.red)
+                    .font(.body)
+                    .frame(maxWidth: .infinity, alignment: .trailing)
+                    .animation(.easeInOut(duration: 0.3), value: configuration.isExpanded)
+            }
+            .onTapGesture {
+                configuration.isExpanded.toggle()
+            }
+            .contentShape(Rectangle())
+            
+            if configuration.isExpanded {
+                configuration.content
+                    .padding(.leading, 0)
+            }
         }
     }
 }
