@@ -112,6 +112,8 @@ class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
     // TODO: Connect to 2 bluetooth devices
     @Published var connectedPeripheral: Peripheral!
     
+    private var currentActiveService: CBService?
+    
     private var readCharacteristic: CBCharacteristic?
     private var writeCharacteristic: CBCharacteristic?
     private var notifyCharacteristic: CBCharacteristic?
@@ -241,6 +243,7 @@ class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
         isConnected = false
         discoveredServices.removeAll()
         discoveredCharacteristics.removeAll()
+        currentActiveService = nil
         print("isConnected : \(isConnected)")
     }
     
@@ -288,7 +291,28 @@ class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
     }
     
     func toggleCharacteristic(characteristic: Characteristic) {
-        // TODO: if service is not the same, toggle all characteristics in service off before attempting to write value into new characteristic
+        guard connectedPeripheral != nil else { return }
+        
+        let newService = characteristic.service     // service of the light that's been toggled
+        
+        if currentActiveService == nil {
+            print("First instance of toggled light, will turn off other lights...")
+            // when currentActiveService does NOT have a service yet, because this is the first light toggled
+            currentActiveService = newService
+            
+            // reset lights for services that are NOT currentActiveService
+            resetOtherServices(except: currentActiveService)
+        } else if currentActiveService?.uuid != newService.uuid {
+            // when currentActiveService already has a service from previous toggled light
+            print("Toggled characteristic service different from previously toggled characteristic service")
+            if let currentService = currentActiveService {
+                print("Resetting characteristics for currentService")
+                resetLights(for: currentService)
+            }
+            
+            print("Setting currentService to newService")
+            currentActiveService = newService
+        }
         
         let writeValue: Data
         
@@ -302,6 +326,45 @@ class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
         
         print("Attempting to write \(writeValue) to \(characteristic.characteristic.uuid)")
         write(value: writeValue, characteristic: characteristic.characteristic)
+    }
+ /*
+    func resetCharacteristics(for service: CBService) {
+        guard let connectedPeripheral = connectedPeripheral else { return }
+        
+        print("resetCharacteristics...")
+        let serviceUUIDString = service.uuid.uuidString.uppercased()
+        
+        if let serviceName = knownServiceNames[serviceUUIDString] {
+            if serviceName == "Landing Lights" {
+                print("Resetting lights for Landing Lights service")
+                resetLights(for: service)
+            } else if serviceName == "Anti-Collision Lights" {
+                print("Resetting lights for Anti-Collision Lights service")
+                resetLights(for: service)
+            }
+        }
+    }
+    */
+    private func resetOtherServices(except activeService: CBService?) {
+        guard let peripheral = connectedPeripheral?.peripheral else { return }
+        
+        print("Resetting lights in other service(s)...")
+        // not all services in peripheral need to be considered when resetting
+        let serviceUUIDsToReset: Set<CBUUID> = Set(["37E6A24C-EEC0-482E-9244-B92077EBA861","3C07F26F-302E-40EB-95C0-F9FDD5A9C51E"].map { CBUUID(string: $0) })
+        
+        for service in peripheral.services ?? [] {
+            if service.uuid != activeService?.uuid && serviceUUIDsToReset.contains(service.uuid) {
+                resetLights(for: service)
+            }
+        }
+    }
+    
+    private func resetLights(for service: CBService) {
+        for characteristic in service.characteristics ?? [] {
+            let writeValue = Data([0x01])
+            write(value: writeValue, characteristic: characteristic)
+            print("Lights for \(service) reset successfully...")
+        }
     }
 }
 
