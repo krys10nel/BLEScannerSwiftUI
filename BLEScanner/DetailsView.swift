@@ -97,7 +97,7 @@ struct DetailsView: View {
                                                         }) {
                                                             Image(systemName: "power.circle")
                                                                 .font(.system(size: 50))
-                                                                .foregroundStyle(characteristic.readValue == "01" ? Color.green : Color.gray)
+                                                                .foregroundStyle(characteristic.readValue == "00" ? Color.green : Color.gray)
                                                         }
                                                     }
                                                     .frame(width: geo.size.width * 0.25, alignment: .topLeading)
@@ -311,13 +311,11 @@ struct LightGroupView: View {
                                     Spacer()
                                     Button(action: {
                                         print("Clicked on \(characteristic)")
-                                        self.device.toggleCharacteristic(characteristic: characteristic)
-                                        
-                                        // TODO: while characteristic name == previous characteristic name
+                                            self.device.toggleCharacteristic(characteristic: characteristic)
                                     }) {
                                         Image(systemName: "power.circle")
                                             .font(.system(size: 50))
-                                            .foregroundStyle(characteristic.readValue == "01" ? Color.green : Color.gray)
+                                            .foregroundStyle(characteristic.readValue == "00" ? Color.green : Color.gray)
                                     }
                                     .buttonStyle(.bordered)
                                     Spacer()
