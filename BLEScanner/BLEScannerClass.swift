@@ -350,7 +350,8 @@ class BluetoothScanner: NSObject, CBCentralManagerDelegate, ObservableObject {
         
         print("Resetting lights in other service(s)...")
         // not all services in peripheral need to be considered when resetting
-        let serviceUUIDsToReset: Set<CBUUID> = Set(["37E6A24C-EEC0-482E-9244-B92077EBA861","3C07F26F-302E-40EB-95C0-F9FDD5A9C51E"].map { CBUUID(string: $0) })
+        let serviceUUIDsToReset: Set<CBUUID> = Set(["37E6A24C-EEC0-482E-9244-B92077EBA861",
+                                                    "3C07F26F-302E-40EB-95C0-F9FDD5A9C51E"].map { CBUUID(string: $0) })
         
         for service in peripheral.services ?? [] {
             if service.uuid != activeService?.uuid && serviceUUIDsToReset.contains(service.uuid) {

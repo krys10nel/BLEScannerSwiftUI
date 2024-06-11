@@ -20,7 +20,7 @@ struct ContentView: View {
     var body: some View {
         Group {
             if isLoading {
-                LoadingView()
+                StartUpLoadingView()
                     .onAppear {
                         DispatchQueue.main.asyncAfter(deadline: .now() + 3) {
                             withAnimation {

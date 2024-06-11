@@ -9,6 +9,7 @@ import SwiftUI
 
 struct DetailsView: View {
     @ObservedObject var device : BluetoothScanner
+    @State private var isLoading = true
     
     // TODO: stay on device screen when disconnecting (for option to reconnect)
     var body: some View {
@@ -160,7 +161,7 @@ struct DetailsView: View {
                     if let landingLightsService = device.discoveredServices.first(where: {device.knownServiceNames[$0.uuid.uuidString] == "Landing Lights"}) {
                         DisclosureGroup {
                             VStack(alignment: .leading) {
-                                LightGroupView(device: device, service: landingLightsService, proxy: geo)
+                                LightGroupView(device: device, service: landingLightsService, proxy: geo, isLoading: isLoading)
                             }
                         } label: {
                             HStack {
@@ -174,7 +175,7 @@ struct DetailsView: View {
                     if let antiCollisionLightsService = device.discoveredServices.first(where: {device.knownServiceNames[$0.uuid.uuidString] == "Anti-Collision Lights"}) {
                         DisclosureGroup {
                             VStack(alignment: .leading) {
-                                LightGroupView(device: device, service: antiCollisionLightsService, proxy: geo)
+                                LightGroupView(device: device, service: antiCollisionLightsService, proxy: geo, isLoading: isLoading)
                             }
                         } label: {
                             HStack {
@@ -189,6 +190,13 @@ struct DetailsView: View {
                 .disclosureGroupStyle(LightDisclosureStyle())
                 .navigationBarTitle(self.device.connectedPeripheral.deviceName)
                 .navigationBarItems(trailing: self.device.isConnected ? Text("Connected").foregroundStyle(.green) : Text("Disconnected").foregroundStyle(.red))
+                .onFirstAppear{
+                    print("Loading descriptors...")
+                    DispatchQueue.main.asyncAfter(deadline: .now() + 5.5) {
+                        isLoading = false
+                        print("Loading set to false...")
+                    }
+                }
             } else {
                 // Fallback on earlier versions
                 GeometryReader { geo in
@@ -210,7 +218,7 @@ struct DetailsView: View {
                         if let landingLightsService = device.discoveredServices.first(where: {device.knownServiceNames[$0.uuid.uuidString] == "Landing Lights"}) {
                             DisclosureGroup {
                                 VStack(alignment: .leading) {
-                                    LightGroupView(device: device, service: landingLightsService, proxy: geo)
+                                    LightGroupView(device: device, service: landingLightsService, proxy: geo, isLoading: isLoading)
                                 }
                             } label: {
                                 HStack {
@@ -224,7 +232,7 @@ struct DetailsView: View {
                         if let antiCollisionLightsService = device.discoveredServices.first(where: {device.knownServiceNames[$0.uuid.uuidString] == "Anti-Collision Lights"}) {
                             DisclosureGroup {
                                 VStack(alignment: .leading) {
-                                    LightGroupView(device: device, service: antiCollisionLightsService, proxy: geo)
+                                    LightGroupView(device: device, service: antiCollisionLightsService, proxy: geo, isLoading: isLoading)
                                 }
                             } label: {
                                 HStack {
@@ -237,6 +245,13 @@ struct DetailsView: View {
                     }
                     .navigationBarTitle(self.device.connectedPeripheral.deviceName)
                     .navigationBarItems(trailing: self.device.isConnected ? Text("Connected").foregroundStyle(.green) : Text("Disconnected").foregroundStyle(.red))
+                    .onFirstAppear{
+                        print("Loading descriptors...")
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 5.5) {
+                            isLoading = false
+                            print("Loading set to false...")
+                        }
+                    }
                 }
             }
         }
@@ -247,7 +262,7 @@ struct DetailsView: View {
         GeometryReader { geo in
             VStack {
                 if let aveoZipTip = device.discoveredServices.first(where: {device.knownServiceNames[$0.uuid.uuidString] == "AVEO-ZTVL"}) {
-                    LightGroupView(device: device, service: aveoZipTip, proxy: geo)
+                    LightGroupView(device: device, service: aveoZipTip, proxy: geo, isLoading: isLoading)
                 } else {
                     Text("Landing Lights service not available")
                 }
@@ -286,6 +301,7 @@ struct LightGroupView: View {
     @ObservedObject var device : BluetoothScanner
     var service: Service
     var proxy: GeometryProxy
+    var isLoading: Bool
     
     var body: some View {
         HStack {
@@ -326,6 +342,7 @@ struct LightGroupView: View {
                     }
                 }
             }
+            .modifier(ActivityIndicatorModifier(isLoading: isLoading))
         }
     }
 }
@@ -354,6 +371,31 @@ struct LightDisclosureStyle: DisclosureGroupStyle {
                 configuration.content
                     .padding(.leading, 0)
             }
+        }
+    }
+}
+
+/* Probably unnecessary. The details loading screen works with the regular .onAppear */
+public extension View {
+    func onFirstAppear(perform action: @escaping () -> Void) -> some View {
+        modifier(ViewFirstAppearModifier(perform: action))
+    }
+}
+
+struct ViewFirstAppearModifier: ViewModifier {
+    @State private var didAppearBefore = false
+    private let action: () -> Void
+    
+    init(perform action: @escaping () -> Void) {
+        self.action = action
+    }
+    
+    func body(content: Content) -> some View {
+        content.onAppear {
+            guard !didAppearBefore else { return }
+            print("First appear confirmed...")
+            didAppearBefore = true
+            action()
         }
     }
 }
