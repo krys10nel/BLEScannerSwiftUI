@@ -12,6 +12,7 @@ struct ContentView: View {
     @State private var isLoading = true
     @ObservedObject var bluetoothScanner = BluetoothScanner()
     @State private var searchText = ""
+    @State private var showingSheet = false
     
     init() {
         UINavigationBar.appearance().largeTitleTextAttributes = [.font : UIFont(name: "Helvetica-Bold", size: 25)!]
@@ -39,7 +40,27 @@ struct ContentView: View {
                         //                .onAppear{UITextField.appearance().clearButtonMode = .whileEditing}
                         //                .textFieldStyle(RoundedBorderTextFieldStyle())
                         
-                        deviceCards
+                        ZStack {
+                            deviceCards
+                            // Company info button
+                            VStack {
+                                Spacer()
+                                Button(action: {showingSheet.toggle()}) {
+                                    Image(systemName: "questionmark.circle")
+                                        .resizable()
+                                        .frame(width: 35.0, height: 35.0)
+                                        .padding(5)
+                                        .background(.blue)
+                                        .foregroundStyle(.white)
+                                        .clipShape(/*@START_MENU_TOKEN@*/Circle()/*@END_MENU_TOKEN@*/, style: /*@START_MENU_TOKEN@*/FillStyle()/*@END_MENU_TOKEN@*/)
+                                }
+                                .sheet(isPresented: $showingSheet) {
+                                    SheetView()
+                                }
+                            }
+                            .frame(maxWidth: .infinity, alignment: .trailing)
+                            .padding(10)
+                        }
                         
                         Spacer()
                         // Button for starting or stopping scanning
@@ -60,6 +81,7 @@ struct ContentView: View {
                         .background(bluetoothScanner.isScanning ? Color.red : Color.blue)
                         .foregroundStyle(Color.white)
                         .cornerRadius(5.0)
+                        Spacer()
                     }
                     .navigationTitle(Text("Bluetooth Devices"))
                     .navigationBarTitleDisplayMode(.automatic)
@@ -118,6 +140,80 @@ struct ContentView: View {
                 .frame(minWidth: 200, idealWidth: .infinity, maxWidth: .infinity, alignment: .leading)
             }
             .listStyle(PlainListStyle())
+        }
+    }
+}
+
+struct SheetView: View {
+    @Environment(\.dismiss) var dismiss
+    
+    var body: some View {
+        VStack {
+            ZStack {
+                HStack {
+                    Spacer()
+                    Text("Contact Us")
+                        .font(.title)
+                        .padding()
+                    Spacer()
+                }
+                HStack {
+                    Spacer()
+                    Button("Dismiss") {
+                        dismiss()
+                    }
+                    .font(.callout)
+                    .padding()
+                }
+            }
+            
+            ScrollView {
+                HStack {
+                    Text("Application in development for ZipTip Vegas")
+                        .padding(15)
+                    Spacer()
+                }
+                
+                HStack {
+                    Text("""
+                        **_Aveo Engineering_**
+                            377 Palm Coast Pkwy S.W. Unit 1
+                            Palm Coast, FL 32137 USA
+                            jake@aveoengineering.com
+                    
+                            Pribram Airport-LKPM, Drasov 202,
+                            261 01 Drasov, Czech republic
+                            petra@aveoengineering.com
+                    """).padding(20)
+                    Spacer()
+                }
+                
+                HStack {
+                    Text("Please feel free to contact us via email:")
+                        .padding(15)
+                    Spacer()
+                }
+                
+                HStack {
+                    Text("""
+                    General Inquiries (Aviation, Marine, Vehicle, Specialty Lighting):
+                        inquiry@aveoengineering.com
+                    General Sales:
+                        sales@aveoengineering.com
+                    Aircraft Manufacturer:
+                        oem@aveoengineering.com
+                    Military/Defense:
+                        defense@aveoengineering.com
+                    """).padding(.leading, 20)
+                    Spacer()
+                }.padding(.bottom, 20)
+                
+                HStack {
+                    Text("Visit www.aveoengineering.com for more information")
+                        .padding(15)
+                    Spacer()
+                }
+            }
         }
     }
 }

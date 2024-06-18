@@ -319,6 +319,7 @@ struct LightGroupView: View {
                                         .foregroundStyle(.gray)
                                         .multilineTextAlignment(.center)
                                         .lineLimit(2)
+                                    // TODO: on click characteristicName, bring up sheet with info of lights?
                                     Spacer()
                                     Text("\(characteristic.description)")
                                         .frame(idealWidth: .infinity, maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
