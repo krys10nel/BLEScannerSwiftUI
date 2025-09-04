@@ -81,7 +81,16 @@ The app utilizes standard SwiftUI MVVM architecture. The state of the entire app
   - ```LoadingView```: Simple initial view shown for 3 seconds on first launch.
   - ```NavigationView```: View that provides the navigation bar, title, and allows pushing the ```DetailsView``` onto the stack.
   - ```NavigationLink(...)```: An invisible link that is activated when ```$bluetoothScanner.isConnected``` becomes true, causing the transition to ```DetailsView```.
-  - ```deviceCards```
+  - ```deviceCards```:
+    - ```List(bluetoothScannner.discoveredPeripherals.filter {...})```: Iterates over the array of peripherals provided by ```bluetoothScanner```.
+    - ```.filter {...}```: Fileters the list of peripherals in real-time based on ```searchText```.
+    - List ```Button``` rows: each row in the list is a button. The ```action``` for the button is to call ```self.bluetoothScanner.connectPeripheral(...)``` and ```self.bluetoothScanner.stopScan()```. The view tells the scanner which device to connect to.
+  - **Stop/Scan** ```Button```:
+    - The ```action``` toggles the scan state by calling ```self.bluetoothScanner.stopScan()``` or ```self.bluetoothScanner.startScan()```.
+    - The button's appearance is determined by reading the ```bluetoothScanner.isScanning``` boolean, ensuring the UI is always in sync with the actual state of the scanner.
+  - **Navigation Bar Items**:
+    - ```.navigationBarItems(trailing: ...)```: Displays Bluetooth power state (```BT ON```/```BT OFF```) by reading the ```bluetoothScanner.isPowered``` boolean.
+    - ```.searchable(text: $searchText)```: Adds search bar to the UI and binds its content to the local ```@State``` variable.
 
 ```DetailsView.swift```
 - This view iterates over ```discoveredServices``` and ```discoveredCharacteristics``` arrays published by ```BluetoothScanner```.
@@ -94,5 +103,11 @@ This can be a "one-stop shop" platform for both civilian and military lights. Th
 
 - **Refactor configuration to an external file (important)**: All hardcoded UUIDs and device names should be moved out of ```BLEScannerClass.swift``` and into an external JSON configuration file. The app would parse this file at startup and it would make it easier to add support for new products without editing source code and recompiling the app.
 - **Implement secure connection logic (for military use)**: To support military-grade products, the app needs to handle BLE bonding. Peripheral firmware should be set to require encryption for its control characteristics, and the iOS app will then need to handle the pairing request initiated by the firmware, which will likely involve a PIN entry prompt. The app can detect whether the device is "military" via a specific service UUID and could indicate a "secure" or "unsecure" connection state in the UI.
-- **Improve connection state management**: Add more robust hanlding for unexpected disconnections. UI should remain on ```DetailsView``` upon disconnect, allowing user to attempt a reconnect without having to go back into the scan list.
+- **Out of range devices**: The current device list in ```ContentView``` is additive during a scan session, which can lead to the persistence of devices that are no longer in range. Implement a mechanism for discovered peripherals, when a peripheral is discovered in ```didDiscover```, store or update a "last seen" timestamp. A periodic timer should purge any peripherals from the ```discoveredPeripherals``` list that haven't been seen in the last 5-10 seconds.
+- **Rescan on disconnect**: ```didDisconnectPeripheral``` should trigger an immediate clear of ```discoveredPeripherals``` list and re-initiate the scan to provide the user with a fresh, accurate list of currently available devices to connect to.
+- **Improve connection state management**: Add more robust hanlding for unexpected disconnections. UI should remain on ```DetailsView``` upon unexpected disconnect, allowing user to attempt a reconnect without having to go back into the scan list.
+- **Multi-device control**: Current architecture is limited to a single device connection. Controlling two or more devices simultaneously (left and right wingtip lights) could be resolved in a few ways:
+  - **Master/Slave**: Simplify the mobile app by pushing multi-device complexity into the firmware. App will only connect to the left wing, which will relay commands to the right wing.
+  - **Star Network**: Mobile app is the central brain. iPhone's ```CBCentralManager``` acts as the ```central``` device and can maintain simultaneous connections to multiple "peripheral" devices. ```BluetoothScanner``` class would need to manage an array of connected peripherals instead of a single instance. UI should be updated to manage and control multiple active devices.
+  - **Mesh**: Devices can relay messages for each other, suitable for large-scale control. Complete rewrite of the BLE logic on both app and device firmware needed to support the Bluetooth Mesh stack, the most complex solution.
 - **Android port**: As mentioned, the iOS application serves as a valid blueprint for an Android version. Estimated time would be ~2 months for an experienced Android BLE developer.
